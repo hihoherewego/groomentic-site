@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erin's Morning Briefing - Purrf Cat Grooming</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body data-user="erin">
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-text">🐱 Purrf Cat Grooming</div>
+            <div class="greeting">Good Morning, Erin</div>
+            <div class="date" id="currentDate"></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="briefing-grid">
+            <div class="card">
+                <h2>📊 Business Summary</h2>
+                <p>You're handling the morning shift today with a solid schedule. Focus on delivering excellent service and maintaining our high grooming standards. Remember to note any special handling requests for our more anxious clients.</p>
+                <ul>
+                    <li>6 appointments scheduled (9am-1pm)</li>
+                    <li>2 anxious/difficult temperament cats</li>
+                    <li>1 first-time client - introductory appointment</li>
+                    <li>Supplies: Grooming station prepped and ready</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>💡 Claude Tip of the Day</h2>
+                <p><strong>Client Communication:</strong> Building rapport with anxious cats and their owners can increase customer retention significantly. Today, take extra time to chat with our anxious clients about their pet's behavior and concerns. Your empathy strengthens relationships.</p>
+            </div>
+
+            <div class="card">
+                <h2>📰 News Headlines</h2>
+                <ul>
+                    <li>New grooming techniques for sensitive cats trending</li>
+                    <li>Customer reviews dominate pet service decisions</li>
+                    <li>Mental health benefits of pet grooming highlighted in research</li>
+                    <li>Professional grooming supplies market expands</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>📝 Team Notes</h2>
+                <p>You're leading the morning charge today. Paul will be available for questions and Lauren will take over at 1pm. Remember to log all special client requests and any behavioral notes.</p>
+                <ul>
+                    <li>First appointment: 8:45am setup recommended</li>
+                    <li>Difficult case #1 at 10:00am - use calming techniques</li>
+                    <li>Difficult case #2 at 12:30pm - shorter appointment window</li>
+                    <li>Hand off notes to Lauren by 1pm</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h2>✨ Feedback</h2>
+            <p style="color: #666; margin-bottom: 20px;">Help us improve your briefing by sharing your feedback on any section above.</p>
+
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label for="section">Which section was most helpful?</label>
+                    <select id="section" required>
+                        <option value="">-- Select a section --</option>
+                        <option value="Business Summary">Business Summary</option>
+                        <option value="Claude Tip">Claude Tip of the Day</option>
+                        <option value="News Headlines">News Headlines</option>
+                        <option value="Team Notes">Team Notes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Rate this section (1-5 stars)</label>
+                    <div class="rating-group">
+                        <button type="button" class="star-btn" data-rating="1">★</button>
+                        <button type="button" class="star-btn" data-rating="2">★</button>
+                        <button type="button" class="star-btn" data-rating="3">★</button>
+                        <button type="button" class="star-btn" data-rating="4">★</button>
+                        <button type="button" class="star-btn" data-rating="5">★</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Optional comment</label>
+                    <textarea id="comment" placeholder="What could we improve?"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
+
+                <div class="success-message" id="successMessage"></div>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+
+        <div class="footer-links">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+
+    <script src="../../app.js"></script>
+    <script>
+        document.getElementById('currentDate').textContent = formatDate();
+    </script>
+</body>
+</html>

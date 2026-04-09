@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paul's Morning Briefing - Purrf Cat Grooming</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body data-user="paul">
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-text">🐱 Purrf Cat Grooming</div>
+            <div class="greeting">Good Morning, Paul</div>
+            <div class="date" id="currentDate"></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="briefing-grid">
+            <div class="card">
+                <h2>📊 Business Summary</h2>
+                <p>Today is shaping up to be a busy day in the grooming salon. Keep an eye on appointment scheduling and ensure all team members are prepped with the day's client needs.</p>
+                <ul>
+                    <li>12 appointments scheduled</li>
+                    <li>3 new clients today</li>
+                    <li>Special requests: 2 difficult temperament cases</li>
+                    <li>Supplies: All bathing supplies stocked</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>💡 Claude Tip of the Day</h2>
+                <p><strong>Delegation Strategy:</strong> As a business owner, your time is your most valuable resource. Today, focus on reviewing team productivity and identifying tasks that can be delegated to Erin and Lauren. This frees you up for high-level business decisions.</p>
+            </div>
+
+            <div class="card">
+                <h2>📰 News Headlines</h2>
+                <ul>
+                    <li>Pet care industry grows 8% YoY</li>
+                    <li>New sustainable grooming products available</li>
+                    <li>Customer satisfaction metrics for service businesses up 12%</li>
+                    <li>Local community events coming this weekend</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>📝 Team Notes</h2>
+                <p>Erin will be handling the morning appointments (9am-1pm). Lauren takes over afternoon bookings (1pm-5pm). Make sure to have a brief sync with the team at 8:30am about today's special cases.</p>
+                <ul>
+                    <li>Check equipment maintenance log</li>
+                    <li>Review new client intake forms</li>
+                    <li>Confirm supplier delivery arrival</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h2>✨ Feedback</h2>
+            <p style="color: #666; margin-bottom: 20px;">Help us improve your briefing by sharing your feedback on any section above.</p>
+
+            <form id="feedbackForm">
+                <div class="form-group">
+                    <label for="section">Which section was most helpful?</label>
+                    <select id="section" required>
+                        <option value="">-- Select a section --</option>
+                        <option value="Business Summary">Business Summary</option>
+                        <option value="Claude Tip">Claude Tip of the Day</option>
+                        <option value="News Headlines">News Headlines</option>
+                        <option value="Team Notes">Team Notes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Rate this section (1-5 stars)</label>
+                    <div class="rating-group">
+                        <button type="button" class="star-btn" data-rating="1">★</button>
+                        <button type="button" class="star-btn" data-rating="2">★</button>
+                        <button type="button" class="star-btn" data-rating="3">★</button>
+                        <button type="button" class="star-btn" data-rating="4">★</button>
+                        <button type="button" class="star-btn" data-rating="5">★</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Optional comment</label>
+                    <textarea id="comment" placeholder="What could we improve?"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
+
+                <div class="success-message" id="successMessage"></div>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+
+        <div class="footer-links">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+
+    <script src="../../app.js"></script>
+    <script>
+        document.getElementById('currentDate').textContent = formatDate();
+    </script>
+</body>
+</html>
