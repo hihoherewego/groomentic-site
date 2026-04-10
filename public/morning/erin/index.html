@@ -3,105 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erin's Morning Briefing - Purrf Cat Grooming</title>
-    <link rel="stylesheet" href="../../styles.css">
+    <title>Erin's Morning Briefing — Purrf Cat Grooming</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a1a; color: #e0e0f0;
+            min-height: 100vh; overflow-x: hidden; line-height: 1.6;
+        }
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 20s ease-in-out infinite; pointer-events: none; z-index: 0; }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #6366f1, transparent); top: -10%; left: -10%; }
+        .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #a855f7, transparent); top: 40%; right: -8%; animation-delay: -7s; }
+        .orb-3 { width: 350px; height: 350px; background: radial-gradient(circle, #ec4899, transparent); bottom: -5%; left: 20%; animation-delay: -14s; }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -40px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        .container { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; }
+        .glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 20px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .glass:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.15); }
+        .header { text-align: center; padding: 40px 0 20px; }
+        .header .logo { font-size: 2.2rem; margin-bottom: 4px; }
+        .header h1 { font-size: 1.6rem; font-weight: 600; background: linear-gradient(135deg, #c084fc, #818cf8, #67e8f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header .date { font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-top: 6px; }
+        .section-icon { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; }
+        .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; }
+        .tip-card { border-left: 3px solid #a78bfa; }
+        .tip-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: #a78bfa; margin-bottom: 8px; font-weight: 600; }
+        .tip-text { font-size: 0.95rem; color: rgba(255,255,255,0.85); }
+        .news-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .news-item:last-child { border-bottom: none; }
+        .news-item a { color: #93c5fd; text-decoration: none; font-size: 0.93rem; line-height: 1.5; display: block; transition: color 0.2s; }
+        .news-item a:hover { color: #bfdbfe; text-decoration: underline; }
+        .news-source { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .client-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+        .client-card:last-child { margin-bottom: 0; }
+        .client-time { font-size: 0.8rem; color: #a78bfa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .client-name { font-size: 1.05rem; font-weight: 600; margin: 4px 0; color: #f0f0ff; }
+        .client-pet { font-size: 0.9rem; color: rgba(255,255,255,0.65); }
+        .client-service { display: inline-block; background: rgba(99,102,241,0.2); color: #c4b5fd; font-size: 0.78rem; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+        .client-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+        .client-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: rgba(236,72,153,0.15); color: #f9a8d4; }
+        .client-tag.new-client { background: rgba(52,211,153,0.2); color: #6ee7b7; }
+        .client-notes { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 6px; font-style: italic; }
+        .visit-count { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
+        .revenue-summary { text-align: center; padding: 14px; background: rgba(52,211,153,0.08); border-radius: 12px; margin-top: 16px; }
+        .revenue-amount { font-size: 1.5rem; font-weight: 700; color: #6ee7b7; }
+        .revenue-label { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        .no-appointments { text-align: center; padding: 30px; color: rgba(255,255,255,0.4); font-style: italic; }
+        .feedback-section { margin-top: 8px; }
+        .star-row { display: flex; gap: 8px; margin: 12px 0; }
+        .star-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 1.5rem; width: 44px; height: 44px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .star-btn.active, .star-btn:hover { background: rgba(250,204,21,0.15); border-color: rgba(250,204,21,0.4); color: #facc15; }
+        .section-select { width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; margin-bottom: 12px; appearance: none; cursor: pointer; }
+        .section-select option { background: #1a1a2e; color: #e0e0f0; }
+        textarea.glass-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 80px; margin-bottom: 12px; }
+        textarea.glass-input::placeholder { color: rgba(255,255,255,0.3); }
+        textarea.glass-input:focus, .section-select:focus { outline: none; border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
+        .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .tag-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); transition: all 0.2s; }
+        .tag-btn.active { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); color: #c4b5fd; }
+        .tag-btn:hover { border-color: rgba(255,255,255,0.25); }
+        .submit-btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; transition: all 0.3s; margin-top: 8px; }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .feedback-msg { text-align: center; padding: 12px; border-radius: 10px; margin-top: 12px; font-size: 0.9rem; display: none; }
+        .feedback-msg.success { display: block; background: rgba(52,211,153,0.12); color: #6ee7b7; }
+        .feedback-msg.error { display: block; background: rgba(239,68,68,0.12); color: #fca5a5; }
+        .links-grid { display: grid; gap: 8px; }
+        .link-item a { color: #93c5fd; text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+        .link-item a:hover { color: #bfdbfe; text-decoration: underline; }
+        .footer { text-align: center; padding: 30px 0; font-size: 0.78rem; color: rgba(255,255,255,0.25); }
+        .footer a { color: rgba(255,255,255,0.35); text-decoration: none; }
+        .footer a:hover { color: rgba(255,255,255,0.5); }
+        .loading { text-align: center; padding: 60px 20px; }
+        .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #a78bfa; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
+        .error-state { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.5); }
+        .error-state .icon { font-size: 2rem; margin-bottom: 12px; }
+        @media (max-width: 480px) {
+            .container { padding: 16px 10px 40px; }
+            .glass { padding: 18px 16px; }
+            .header h1 { font-size: 1.3rem; }
+            .star-btn { width: 38px; height: 38px; font-size: 1.3rem; }
+        }
+    </style>
 </head>
 <body data-user="erin">
-    <div class="header">
-        <div class="header-content">
-            <div class="logo-text">🐱 Purrf Cat Grooming</div>
-            <div class="greeting">Good Morning, Erin</div>
-            <div class="date" id="currentDate"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🐱</div>
+            <h1>Good Morning, Erin</h1>
+            <div class="date" id="headerDate">Loading...</div>
+        </div>
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Fetching your briefing...</div>
+            </div>
         </div>
     </div>
-
-    <div class="main-container">
-        <div class="briefing-grid">
-            <div class="card">
-                <h2>📊 Business Summary</h2>
-                <p>You're handling the morning shift today with a solid schedule. Focus on delivering excellent service and maintaining our high grooming standards. Remember to note any special handling requests for our more anxious clients.</p>
-                <ul>
-                    <li>6 appointments scheduled (9am-1pm)</li>
-                    <li>2 anxious/difficult temperament cats</li>
-                    <li>1 first-time client - introductory appointment</li>
-                    <li>Supplies: Grooming station prepped and ready</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h2>💡 Claude Tip of the Day</h2>
-                <p><strong>Client Communication:</strong> Building rapport with anxious cats and their owners can increase customer retention significantly. Today, take extra time to chat with our anxious clients about their pet's behavior and concerns. Your empathy strengthens relationships.</p>
-            </div>
-
-            <div class="card">
-                <h2>📰 News Headlines</h2>
-                <ul>
-                    <li>New grooming techniques for sensitive cats trending</li>
-                    <li>Customer reviews dominate pet service decisions</li>
-                    <li>Mental health benefits of pet grooming highlighted in research</li>
-                    <li>Professional grooming supplies market expands</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h2>📝 Team Notes</h2>
-                <p>You're leading the morning charge today. Paul will be available for questions and Lauren will take over at 1pm. Remember to log all special client requests and any behavioral notes.</p>
-                <ul>
-                    <li>First appointment: 8:45am setup recommended</li>
-                    <li>Difficult case #1 at 10:00am - use calming techniques</li>
-                    <li>Difficult case #2 at 12:30pm - shorter appointment window</li>
-                    <li>Hand off notes to Lauren by 1pm</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="feedback-section">
-            <h2>✨ Feedback</h2>
-            <p style="color: #666; margin-bottom: 20px;">Help us improve your briefing by sharing your feedback on any section above.</p>
-
-            <form id="feedbackForm">
-                <div class="form-group">
-                    <label for="section">Which section was most helpful?</label>
-                    <select id="section" required>
-                        <option value="">-- Select a section --</option>
-                        <option value="Business Summary">Business Summary</option>
-                        <option value="Claude Tip">Claude Tip of the Day</option>
-                        <option value="News Headlines">News Headlines</option>
-                        <option value="Team Notes">Team Notes</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Rate this section (1-5 stars)</label>
-                    <div class="rating-group">
-                        <button type="button" class="star-btn" data-rating="1">★</button>
-                        <button type="button" class="star-btn" data-rating="2">★</button>
-                        <button type="button" class="star-btn" data-rating="3">★</button>
-                        <button type="button" class="star-btn" data-rating="4">★</button>
-                        <button type="button" class="star-btn" data-rating="5">★</button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="comment">Optional comment</label>
-                    <textarea id="comment" placeholder="What could we improve?"></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
-
-                <div class="success-message" id="successMessage"></div>
-                <div class="error-message" id="errorMessage"></div>
-            </form>
-        </div>
-
-        <div class="footer-links">
-            <a href="/">← Back to Home</a>
-        </div>
-    </div>
-
-    <script src="../../app.js"></script>
     <script>
-        document.getElementById('currentDate').textContent = formatDate();
+    (function() {
+        var USER = document.body.getAttribute('data-user') || 'paul';
+        var API = 'https://duwwfbohvptdsgrvlskj.supabase.co/functions/v1/serve-morning-briefing';
+        var feedbackState = { rating: 0, section: '', tags: [], comment: '', thoughts: '' };
+
+        function init() {
+            fetch(API + '?name=' + USER + '&format=json')
+                .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+                .then(function(row) {
+                    if (!row || (!row.json_data && !row.html_content)) { showError('No briefing available yet today. Check back after 5:00 AM.'); return; }
+                    var data = row.json_data;
+                    if (!data) { showError('Briefing data is still in legacy format. A new briefing will be generated tomorrow.'); return; }
+                    render(data, row.briefing_date);
+                })
+                .catch(function(err) { console.error(err); showError('Could not load briefing. Please try refreshing.'); });
+        }
+
+        function showError(msg) {
+            document.getElementById('content').innerHTML = '<div class="glass error-state"><div class="icon">&#128575;</div><p>' + msg + '</p></div>';
+        }
+
+        function formatBriefingDate(dateStr) {
+            var d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function render(data, briefingDate) {
+            document.getElementById('headerDate').textContent = data.displayDate || formatBriefingDate(briefingDate);
+            var clients = data.clients || [];
+            var news = data.news || [];
+            var f1 = data.f1 || [];
+            var tip = data.tip || null;
+            var totalCents = data.totalRevenueCents || 0;
+            var appointmentCount = data.appointmentCount || clients.length;
+
+            var html = '';
+
+            // Claude Tip
+            if (tip) {
+                var tipText = '';
+                if (typeof tip === 'string') { tipText = escHtml(tip); }
+                else if (tip.title && tip.body) { tipText = '<strong>' + escHtml(tip.title) + '</strong> &#8212; ' + escHtml(tip.body); }
+                else if (tip.body) { tipText = escHtml(tip.body); }
+                html += '<div class="glass tip-card"><div class="tip-label">Claude Tip of the Day</div><div class="tip-text">' + tipText + '</div></div>';
+            }
+
+            // AU News
+            if (news.length) {
+                html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127462;&#127482;</span> Australian News</div>';
+                news.forEach(function(n) {
+                    html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
+                    if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // F1 News
+            if (f1.length) {
+                html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127950;&#65039;</span> Formula 1</div>';
+                f1.forEach(function(n) {
+                    html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
+                    if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Schedule
+            html += '<div class="glass"><div class="section-title"><span class="section-icon">&#128203;</span> Today\'s Schedule</div>';
+            if (clients.length === 0) {
+                html += '<div class="no-appointments">No appointments scheduled for today.</div>';
+            } else {
+                clients.forEach(function(c) {
+                    html += '<div class="client-card">';
+                    html += '<div class="client-time">' + escHtml(c.time || '') + (c.duration ? ' &#183; ' + c.duration + ' min' : '') + '</div>';
+                    html += '<div class="client-name">' + escHtml(c.name || 'Unknown Client') + '</div>';
+                    (c.pets || []).forEach(function(p) {
+                        var petInfo = [p.name, p.breed, p.sex].filter(Boolean).join(' &#183; ');
+                        if (petInfo) html += '<div class="client-pet">&#128062; ' + escHtml(petInfo) + '</div>';
+                    });
+                    html += '<div class="client-tags">';
+                    (c.services || []).forEach(function(s) {
+                        html += '<span class="client-service">' + escHtml(s.name) + '</span>';
+                    });
+                    if (c.is_new) html += '<span class="client-tag new-client">New Client</span>';
+                    html += '</div>';
+                    var totalVisits = 0;
+                    (c.pets || []).forEach(function(p) { totalVisits += (p.visit_count || 0); });
+                    if (totalVisits > 0) html += '<div class="visit-count">' + totalVisits + ' previous visit' + (totalVisits !== 1 ? 's' : '') + '</div>';
+                    if (c.notes) html += '<div class="client-notes">"' + escHtml(c.notes) + '"</div>';
+                    html += '</div>';
+                });
+                html += '<div class="revenue-summary"><div class="revenue-amount">$' + (totalCents / 100).toFixed(2) + '</div>';
+                html += '<div class="revenue-label">' + appointmentCount + ' appointment' + (appointmentCount !== 1 ? 's' : '') + ' &#183; Estimated Revenue</div></div>';
+            }
+            html += '</div>';
+
+            // Feedback - Section Rating
+            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#11088;</span> Rate a Section</div>';
+            html += '<select class="section-select" id="fbSection"><option value="">Choose a section...</option><option value="Claude Tip">Claude Tip</option><option value="AU News">Australian News</option><option value="F1 News">Formula 1</option><option value="Schedule">Today\'s Schedule</option></select>';
+            html += '<div class="star-row" id="starRow">';
+            for (var i = 1; i <= 5; i++) html += '<button type="button" class="star-btn" data-r="' + i + '">&#9733;</button>';
+            html += '</div>';
+            html += '<textarea class="glass-input" id="fbComment" placeholder="Any comments on this section?"></textarea></div>';
+
+            // Feedback - Quick Tags
+            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#127991;&#65039;</span> Quick Feedback</div>';
+            html += '<p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:10px;">What would you like more of?</p>';
+            html += '<div class="tag-grid" id="tagGrid">';
+            ['More detail','Less detail','More news','More F1','Client history','Revenue focus','Team updates','Weather'].forEach(function(t) {
+                html += '<button type="button" class="tag-btn" data-tag="' + escAttr(t) + '">' + escHtml(t) + '</button>';
+            });
+            html += '</div>';
+            html += '<textarea class="glass-input" id="fbThoughts" placeholder="Anything else on your mind?"></textarea></div>';
+
+            // Submit
+            html += '<button class="submit-btn" id="submitBtn">Submit Feedback</button>';
+            html += '<div class="feedback-msg" id="fbMsg"></div>';
+
+            // Read More Links
+            var allLinks = news.concat(f1).filter(function(n) { return n.link; });
+            if (allLinks.length) {
+                html += '<div class="glass" style="margin-top:20px;"><div class="section-title"><span class="section-icon">&#128279;</span> Read More</div><div class="links-grid">';
+                allLinks.forEach(function(n) {
+                    html += '<div class="link-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a></div>';
+                });
+                html += '</div></div>';
+            }
+
+            // Footer
+            html += '<div class="footer"><p>Purrf Cat Grooming &#183; Morning Briefing</p><p style="margin-top:4px;"><a href="/">groomentic.com.au</a></p></div>';
+
+            document.getElementById('content').innerHTML = html;
+            bindFeedback(briefingDate);
+        }
+
+        function bindFeedback(briefingDate) {
+            document.querySelectorAll('#starRow .star-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var r = parseInt(btn.dataset.r);
+                    feedbackState.rating = r;
+                    document.querySelectorAll('#starRow .star-btn').forEach(function(b, i) { b.classList.toggle('active', i < r); });
+                });
+            });
+            var sel = document.getElementById('fbSection');
+            if (sel) sel.addEventListener('change', function() { feedbackState.section = sel.value; });
+            var cmt = document.getElementById('fbComment');
+            if (cmt) cmt.addEventListener('input', function() { feedbackState.comment = cmt.value; });
+            document.querySelectorAll('#tagGrid .tag-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var tag = btn.dataset.tag;
+                    btn.classList.toggle('active');
+                    if (feedbackState.tags.indexOf(tag) >= 0) { feedbackState.tags = feedbackState.tags.filter(function(t) { return t !== tag; }); }
+                    else { feedbackState.tags.push(tag); }
+                });
+            });
+            var th = document.getElementById('fbThoughts');
+            if (th) th.addEventListener('input', function() { feedbackState.thoughts = th.value; });
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    var msg = document.getElementById('fbMsg');
+                    var hasContent = feedbackState.rating || feedbackState.tags.length || (feedbackState.comment && feedbackState.comment.trim()) || (feedbackState.thoughts && feedbackState.thoughts.trim());
+                    if (!hasContent) { msg.className = 'feedback-msg error'; msg.textContent = 'Please provide at least one piece of feedback.'; return; }
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                    var body = {
+                        briefing_date: briefingDate,
+                        recipient_name: USER,
+                        rating: feedbackState.rating || null,
+                        tags: feedbackState.tags,
+                        feedback_text: [
+                            feedbackState.section ? 'Section: ' + feedbackState.section : '',
+                            feedbackState.comment ? 'Comment: ' + feedbackState.comment : '',
+                            feedbackState.thoughts ? 'Thoughts: ' + feedbackState.thoughts : ''
+                        ].filter(Boolean).join(' | ')
+                    };
+                    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                        .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); msg.className = 'feedback-msg success'; msg.textContent = 'Thank you! Your feedback has been submitted.'; submitBtn.textContent = 'Submitted &#10003;'; })
+                        .catch(function(err) { console.error(err); msg.className = 'feedback-msg error'; msg.textContent = 'Failed to submit. Please try again.'; submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; });
+                });
+            }
+        }
+
+        init();
+    })();
     </script>
 </body>
 </html>
