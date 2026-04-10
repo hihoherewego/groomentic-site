@@ -120,8 +120,8 @@
             fetch(API + '?name=' + USER + '&format=json')
                 .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
                 .then(function(row) {
-                    if (!row || (!row.json_data && !row.html_content)) { showError('No briefing available yet today. Check back after 5:00 AM.'); return; }
-                    var data = row.json_data;
+                    if (!row || (!row.data && !row.json_data && !row.html_content)) { showError('No briefing available yet today. Check back after 5:00 AM.'); return; }
+                    var data = row.data || row.json_data;
                     if (!data) { showError('Briefing data is still in legacy format. A new briefing will be generated tomorrow.'); return; }
                     render(data, row.briefing_date);
                 })
