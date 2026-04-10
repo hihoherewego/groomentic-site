@@ -28,6 +28,7 @@
         .header .logo { font-size: 2.2rem; margin-bottom: 4px; }
         .header h1 { font-size: 1.6rem; font-weight: 600; background: linear-gradient(135deg, #c084fc, #818cf8, #67e8f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .header .date { font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-top: 6px; }
+        .header .subline { font-size: 0.85rem; color: rgba(255,255,255,0.35); margin-top: 4px; }
         .section-icon { font-size: 1.3rem; margin-right: 8px; vertical-align: middle; }
         .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; }
         .tip-card { border-left: 3px solid #a78bfa; }
@@ -38,26 +39,94 @@
         .news-item a { color: #93c5fd; text-decoration: none; font-size: 0.93rem; line-height: 1.5; display: block; transition: color 0.2s; }
         .news-item a:hover { color: #bfdbfe; text-decoration: underline; }
         .news-source { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
-        .news-category { display: inline-block; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-bottom: 6px; margin-right: 0; font-weight: 500; }
+        .news-category { display: inline-block; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-bottom: 6px; font-weight: 500; }
         .news-category-iran { background: rgba(248,113,113,0.2); color: #fca5a5; }
         .news-category-perth { background: rgba(45,212,191,0.2); color: #5eead4; }
         .news-category-ai { background: rgba(167,139,250,0.2); color: #c4b5fd; }
         .news-category-good { background: rgba(74,222,128,0.2); color: #86efac; }
-        .client-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+
+        /* Rich client cards */
+        .depart-banner {
+            background: linear-gradient(135deg, rgba(248,113,113,0.12), rgba(251,191,36,0.08));
+            border: 1px solid rgba(248,113,113,0.2);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fca5a5;
+        }
+        .depart-banner .depart-time { font-size: 1.15rem; font-weight: 700; color: #fbbf24; }
+        .depart-banner .tag-mobile { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: rgba(248,113,113,0.15); color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; margin-left: auto; }
+
+        .client-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
         .client-card:last-child { margin-bottom: 0; }
-        .client-time { font-size: 0.8rem; color: #a78bfa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .client-name { font-size: 1.05rem; font-weight: 600; margin: 4px 0; color: #f0f0ff; }
-        .client-pet { font-size: 0.9rem; color: rgba(255,255,255,0.65); }
-        .client-service { display: inline-block; background: rgba(99,102,241,0.2); color: #c4b5fd; font-size: 0.78rem; padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
-        .client-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
-        .client-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: rgba(236,72,153,0.15); color: #f9a8d4; }
-        .client-tag.new-client { background: rgba(52,211,153,0.2); color: #6ee7b7; }
-        .client-notes { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 6px; font-style: italic; }
-        .visit-count { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
-        .revenue-summary { text-align: center; padding: 14px; background: rgba(52,211,153,0.08); border-radius: 12px; margin-top: 16px; }
-        .revenue-amount { font-size: 1.5rem; font-weight: 700; color: #6ee7b7; }
-        .revenue-label { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        .client-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .client-name { font-size: 1.1rem; font-weight: 700; color: #f0efff; }
+        .client-meta { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        .tag { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tag-confirmed { background: rgba(74,222,128,0.2); color: #86efac; }
+        .tag-unconfirmed { background: rgba(251,191,36,0.2); color: #fde68a; }
+        .tag-new { background: rgba(52,211,153,0.2); color: #6ee7b7; }
+
+        .service-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.88rem; flex-wrap: wrap; gap: 4px; }
+        .service-name { color: rgba(255,255,255,0.7); }
+        .service-price { color: #4ade80; font-weight: 600; }
+
+        .address-line {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+            margin: 10px 0;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+
+        .cat-card {
+            background: rgba(167,139,250,0.08);
+            border: 1px solid rgba(167,139,250,0.15);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 10px 0;
+        }
+        .cat-card h4 { font-size: 0.92rem; font-weight: 600; color: #c4b5fd; margin-bottom: 2px; }
+        .cat-card p { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin: 0; line-height: 1.5; }
+
+        .behaviour-summary {
+            background: rgba(96,165,250,0.06);
+            border-left: 3px solid rgba(96,165,250,0.4);
+            padding: 12px 14px;
+            border-radius: 0 10px 10px 0;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .revenue-total {
+            text-align: right;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #4ade80;
+            padding: 16px 0 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin-top: 8px;
+        }
+        .revenue-label { font-size: 0.82rem; font-weight: 400; color: rgba(255,255,255,0.5); }
+
         .no-appointments { text-align: center; padding: 30px; color: rgba(255,255,255,0.4); font-style: italic; }
+
+        /* Feedback */
         .feedback-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); }
         .feedback-item-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-weight: 600; display: block; }
         .toggle-row { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -65,13 +134,13 @@
         .toggle-btn:hover { border-color: rgba(255,255,255,0.25); }
         .toggle-btn.active { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); color: #c4b5fd; }
         .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        textarea.glass-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 70px; margin-bottom: 12px; }
-        textarea.glass-input::placeholder { color: rgba(255,255,255,0.3); }
-        textarea.glass-input:focus { outline: none; border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
-        .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .tag-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); transition: all 0.2s; }
         .tag-btn.active { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); color: #c4b5fd; }
         .tag-btn:hover { border-color: rgba(255,255,255,0.25); }
+        textarea.glass-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 70px; margin-bottom: 12px; }
+        textarea.glass-input::placeholder { color: rgba(255,255,255,0.3); }
+        textarea.glass-input:focus { outline: none; border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
         .submit-btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; transition: all 0.3s; margin-top: 8px; }
         .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
         .submit-btn:active { transform: translateY(0); }
@@ -98,6 +167,7 @@
             .feedback-grid { grid-template-columns: 1fr; }
             .toggle-row { flex-direction: column; }
             .toggle-btn { width: 100%; }
+            .depart-banner { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -107,9 +177,10 @@
     <div class="orb orb-3"></div>
     <div class="container">
         <div class="header">
-            <div class="logo">🐱</div>
+            <div class="logo">&#x1F431;</div>
             <h1>Good Morning, Lauren</h1>
             <div class="date" id="headerDate">Loading...</div>
+            <div class="subline" id="headerSubline"></div>
         </div>
         <div id="content">
             <div class="loading">
@@ -120,18 +191,11 @@
     </div>
     <script>
     (function() {
-        var USER = document.body.getAttribute('data-user') || 'lauren';
+        var USER = document.body.getAttribute('data-user') || 'paul';
         var API = 'https://duwwfbohvptdsgrvlskj.supabase.co/functions/v1/serve-morning-briefing';
         var feedbackState = {
-            useful: '',
-            bestSections: [],
-            changeRequest: '',
-            addRemove: '',
-            readingExperience: '',
-            contentAmount: '',
-            looks: '',
-            improvement: '',
-            generalComments: ''
+            useful: '', bestSections: [], changeRequest: '', addRemove: '',
+            readingExperience: '', contentAmount: '', looks: '', improvement: '', generalComments: ''
         };
 
         function init() {
@@ -150,41 +214,44 @@
             document.getElementById('content').innerHTML = '<div class="glass error-state"><div class="icon">&#128575;</div><p>' + msg + '</p></div>';
         }
 
-        function formatBriefingDate(dateStr) {
-            var d = new Date(dateStr + 'T00:00:00');
-            return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        }
-
-        function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function money(cents) { if (!cents) return '$0'; var d = cents / 100; return d % 1 === 0 ? '$' + d : '$' + d.toFixed(2); }
 
         function getCategoryClass(label) {
             if (!label) return '';
-            var lower = label.toLowerCase();
-            if (lower.includes('iran') || lower.includes('war')) return 'news-category-iran';
-            if (lower.includes('perth') || lower.includes('local')) return 'news-category-perth';
-            if (lower.includes('claude') || lower.includes('ai')) return 'news-category-ai';
-            if (lower.includes('good')) return 'news-category-good';
+            var l = label.toLowerCase();
+            if (l.includes('iran') || l.includes('war')) return 'news-category-iran';
+            if (l.includes('perth') || l.includes('local')) return 'news-category-perth';
+            if (l.includes('claude') || l.includes('ai')) return 'news-category-ai';
+            if (l.includes('good')) return 'news-category-good';
             return 'news-category-ai';
         }
 
         function render(data, briefingDate) {
-            document.getElementById('headerDate').textContent = data.displayDate || formatBriefingDate(briefingDate);
+            document.getElementById('headerDate').textContent = data.displayDate || briefingDate;
             var clients = data.clients || [];
             var news = data.news || [];
             var f1 = data.f1 || [];
             var tip = data.tip || null;
             var totalCents = data.totalRevenueCents || 0;
-            var appointmentCount = data.appointmentCount || clients.length;
+            var count = data.appointmentCount || clients.length;
+
+            // Header subline
+            var subParts = [];
+            if (count > 0) subParts.push(count + ' appointment' + (count !== 1 ? 's' : ''));
+            else subParts.push('No appointments today');
+            if (data.hasMobileDay) subParts.push('Mobile day');
+            document.getElementById('headerSubline').textContent = subParts.join(' \u2022 ');
 
             var html = '';
 
             // Claude Tip
             if (tip) {
                 var tipText = '';
-                if (typeof tip === 'string') { tipText = escHtml(tip); }
-                else if (tip.title && tip.body) { tipText = '<strong>' + escHtml(tip.title) + '</strong> &#8212; ' + escHtml(tip.body); }
-                else if (tip.body) { tipText = escHtml(tip.body); }
+                if (typeof tip === 'string') tipText = esc(tip);
+                else if (tip.title && tip.body) tipText = '<strong>' + esc(tip.title) + '</strong> \u2014 ' + esc(tip.body);
+                else if (tip.body) tipText = esc(tip.body);
                 html += '<div class="glass tip-card"><div class="tip-label">Claude Tip of the Day</div><div class="tip-text">' + tipText + '</div></div>';
             }
 
@@ -192,18 +259,11 @@
             if (news.length) {
                 html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127462;&#127482;</span> Curated News</div>';
                 news.forEach(function(n) {
-                    var hasLabel = n.label && n.emoji;
-                    if (hasLabel) {
-                        html += '<div class="news-item">';
-                        html += '<span class="news-category ' + getCategoryClass(n.label) + '">' + escHtml(n.emoji) + ' ' + escHtml(n.label) + '</span>';
-                        html += '<a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
-                        if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
-                        html += '</div>';
-                    } else {
-                        html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
-                        if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
-                        html += '</div>';
-                    }
+                    html += '<div class="news-item">';
+                    if (n.label && n.emoji) html += '<span class="news-category ' + getCategoryClass(n.label) + '">' + esc(n.emoji) + ' ' + esc(n.label) + '</span>';
+                    html += '<a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + esc(n.title) + '</a>';
+                    if (n.source) html += '<div class="news-source">' + esc(n.source) + '</div>';
+                    html += '</div>';
                 });
                 html += '</div>';
             }
@@ -212,44 +272,118 @@
             if (f1.length) {
                 html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127950;&#65039;</span> Formula 1</div>';
                 f1.forEach(function(n) {
-                    html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
-                    if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
+                    html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + esc(n.title) + '</a>';
+                    if (n.source) html += '<div class="news-source">' + esc(n.source) + '</div>';
                     html += '</div>';
                 });
                 html += '</div>';
             }
 
-            // Schedule
-            html += '<div class="glass"><div class="section-title"><span class="section-icon">&#128203;</span> Today\'s Schedule</div>';
+            // === TODAY'S SCHEDULE (Rich Client Cards) ===
+            html += '<div class="glass"><div class="section-title"><span class="section-icon">&#128197;</span> Today\'s Schedule</div>';
+
             if (clients.length === 0) {
                 html += '<div class="no-appointments">No appointments scheduled for today.</div>';
             } else {
+                // Departure banner for mobile days
+                if (data.departureBanner) {
+                    var db = data.departureBanner;
+                    html += '<div class="depart-banner">';
+                    html += '<span>&#x1F697;</span>';
+                    html += '<span>Depart by <span class="depart-time">' + esc(db.depart_time) + '</span> \u2192 ' + esc(db.first_stop) + ' first</span>';
+                    html += '<span class="tag-mobile">Mobile Day</span>';
+                    html += '</div>';
+                }
+
                 clients.forEach(function(c) {
                     html += '<div class="client-card">';
-                    html += '<div class="client-time">' + escHtml(c.time || '') + (c.duration ? ' &#183; ' + c.duration + ' min' : '') + '</div>';
-                    html += '<div class="client-name">' + escHtml(c.name || 'Unknown Client') + '</div>';
-                    (c.pets || []).forEach(function(p) {
-                        var petInfo = [p.name, p.breed, p.sex].filter(Boolean).join(' &#183; ');
-                        if (petInfo) html += '<div class="client-pet">&#128062; ' + escHtml(petInfo) + '</div>';
-                    });
-                    html += '<div class="client-tags">';
-                    (c.services || []).forEach(function(s) {
-                        html += '<span class="client-service">' + escHtml(s.name) + '</span>';
-                    });
-                    if (c.is_new) html += '<span class="client-tag new-client">New Client</span>';
+
+                    // Client header: name + visit label + confirmation tag
+                    html += '<div class="client-header"><div>';
+                    var nameLabel = esc(c.name);
+                    if (c.visit_label) nameLabel += ' \u2014 ' + esc(c.visit_label);
+                    html += '<div class="client-name">' + nameLabel + '</div>';
+                    // Meta: client since, phone
+                    var metaParts = [];
+                    if (c.client_since) metaParts.push('Client since ' + esc(c.client_since));
+                    if (c.phone) metaParts.push(esc(c.phone));
+                    if (metaParts.length) html += '<div class="client-meta">' + metaParts.join(' \u2022 ') + '</div>';
                     html += '</div>';
-                    var totalVisits = 0;
-                    (c.pets || []).forEach(function(p) { totalVisits += (p.visit_count || 0); });
-                    if (totalVisits > 0) html += '<div class="visit-count">' + totalVisits + ' previous visit' + (totalVisits !== 1 ? 's' : '') + '</div>';
-                    if (c.notes) html += '<div class="client-notes">"' + escHtml(c.notes) + '"</div>';
+                    // Confirmation tag
+                    if (c.is_confirmed) {
+                        html += '<span class="tag tag-confirmed">Confirmed</span>';
+                    } else if (c.is_new) {
+                        html += '<span class="tag tag-new">New Client</span>';
+                    } else {
+                        html += '<span class="tag tag-unconfirmed">Unconfirmed</span>';
+                    }
                     html += '</div>';
+
+                    // Service lines with per-pet pricing
+                    var services = c.services || [];
+                    services.forEach(function(s) {
+                        if (s.name === 'Let Paul Decide' && !s.price) return;
+                        html += '<div class="service-line">';
+                        var svcLabel = s.pet_name ? esc(s.pet_name) + ' \u2014 ' + esc(s.name) : esc(s.name);
+                        html += '<span class="service-name">' + svcLabel + '</span>';
+                        if (s.price > 0) html += '<span class="service-price">' + money(s.price) + '</span>';
+                        html += '</div>';
+                    });
+
+                    // Time range
+                    if (c.time_range) {
+                        html += '<div class="client-meta" style="margin-top:4px;">' + esc(c.time_range) + '</div>';
+                    } else if (c.time) {
+                        html += '<div class="client-meta" style="margin-top:4px;">' + esc(c.time) + (c.duration ? ' \u2022 ' + c.duration + ' min' : '') + '</div>';
+                    }
+
+                    // Address line (especially for mobile)
+                    if (c.address) {
+                        var addrText = '&#x1F4CD; ' + esc(c.address);
+                        if (c.access_notes) addrText += ' \u2022 ' + esc(c.access_notes);
+                        html += '<div class="address-line">' + addrText + '</div>';
+                    }
+
+                    // Cat cards
+                    var pets = c.pets || [];
+                    if (pets.length > 0) {
+                        html += '<div class="cat-card">';
+                        var firstPet = pets[0];
+                        var petParts = ['&#x1F431; ' + esc(firstPet.name)];
+                        if (firstPet.breed) petParts.push(esc(firstPet.breed));
+                        if (firstPet.sex) petParts.push(esc(firstPet.sex));
+                        if (firstPet.age) petParts.push(esc(firstPet.age));
+                        html += '<h4>' + petParts.join(' \u2022 ') + '</h4>';
+                        if (pets.length > 1) {
+                            var otherPets = pets.slice(1).map(function(p) {
+                                var parts = ['<strong>' + esc(p.name) + '</strong>'];
+                                if (p.breed) parts.push(esc(p.breed));
+                                if (p.sex) parts.push(esc(p.sex));
+                                if (p.age) parts.push(esc(p.age));
+                                return parts.join(' \u2022 ');
+                            });
+                            html += '<p>Also: ' + otherPets.join('; ') + '</p>';
+                        }
+                        html += '</div>';
+                    }
+
+                    // Behaviour summary
+                    if (c.behaviour_summary) {
+                        html += '<div class="behaviour-summary"><strong>Behaviour &amp; Handling:</strong> ' + esc(c.behaviour_summary) + '</div>';
+                    }
+
+                    html += '</div>'; // end client-card
                 });
-                html += '<div class="revenue-summary"><div class="revenue-amount">$' + (totalCents / 100).toFixed(2) + '</div>';
-                html += '<div class="revenue-label">' + appointmentCount + ' appointment' + (appointmentCount !== 1 ? 's' : '') + ' &#183; Estimated Revenue</div></div>';
+
+                // Revenue total
+                html += '<div class="revenue-total">';
+                html += '<span class="revenue-label">Expected revenue today</span><br>';
+                html += money(totalCents);
+                html += '</div>';
             }
             html += '</div>';
 
-            // Feedback - Panel 1: How was today's briefing?
+            // === FEEDBACK PANEL 1 ===
             html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#128203;</span> How was today\'s briefing?</div>';
             html += '<div class="feedback-item"><label class="feedback-item-label">Was this useful today?</label>';
             html += '<div class="toggle-row">';
@@ -258,7 +392,7 @@
             html += '<button type="button" class="toggle-btn choose-useful" data-value="no">No</button>';
             html += '</div></div>';
             html += '<div class="feedback-item"><label class="feedback-item-label">Best section today?</label>';
-            html += '<div class="tag-grid" id="bestSectionsGrid">';
+            html += '<div class="tag-grid">';
             html += '<button type="button" class="tag-btn choose-section" data-value="Tip">Tip</button>';
             html += '<button type="button" class="tag-btn choose-section" data-value="News">News</button>';
             html += '<button type="button" class="tag-btn choose-section" data-value="F1">F1</button>';
@@ -271,7 +405,7 @@
             html += '<textarea class="glass-input" id="fbAddRemove" placeholder="Content feedback..."></textarea></div>';
             html += '</div>';
 
-            // Feedback - Panel 2: Design & experience
+            // === FEEDBACK PANEL 2 ===
             html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#128394;</span> Design & experience</div>';
             html += '<div class="feedback-item"><label class="feedback-item-label">Reading experience?</label>';
             html += '<div class="toggle-row">';
@@ -305,130 +439,33 @@
             var allLinks = news.concat(f1).filter(function(n) { return n.link; });
             if (allLinks.length) {
                 html += '<div class="glass" style="margin-top:20px;"><div class="section-title"><span class="section-icon">&#128279;</span> Read More</div><div class="links-grid">';
-                allLinks.forEach(function(n) {
-                    html += '<div class="link-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a></div>';
-                });
+                allLinks.forEach(function(n) { html += '<div class="link-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + esc(n.title) + '</a></div>'; });
                 html += '</div></div>';
             }
 
             // Footer
-            html += '<div class="footer"><p>Purrf Cat Grooming &#183; Morning Briefing</p><p style="margin-top:4px;"><a href="/">groomentic.com.au</a></p></div>';
+            html += '<div class="footer"><p>Purrf Cat Grooming \u2022 Morning Briefing</p>';
+            if (data.generatedAt) html += '<p style="margin-top:4px; font-size:0.72rem;">Generated ' + esc(data.generatedAt) + '</p>';
+            html += '<p style="margin-top:4px;"><a href="/">groomentic.com.au</a></p></div>';
 
             document.getElementById('content').innerHTML = html;
             bindFeedback(briefingDate);
         }
 
         function bindFeedback(briefingDate) {
-            // Useful toggle
             document.querySelectorAll('.choose-useful').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    var val = btn.dataset.value;
-                    feedbackState.useful = feedbackState.useful === val ? '' : val;
-                    document.querySelectorAll('.choose-useful').forEach(function(b) {
-                        b.classList.toggle('active', b.dataset.value === feedbackState.useful);
-                    });
+                    feedbackState.useful = feedbackState.useful === btn.dataset.value ? '' : btn.dataset.value;
+                    document.querySelectorAll('.choose-useful').forEach(function(b) { b.classList.toggle('active', b.dataset.value === feedbackState.useful); });
                 });
             });
-
-            // Best sections multi-select
             document.querySelectorAll('.choose-section').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    var val = btn.dataset.value;
-                    if (feedbackState.bestSections.indexOf(val) >= 0) {
-                        feedbackState.bestSections = feedbackState.bestSections.filter(function(s) { return s !== val; });
-                    } else {
-                        feedbackState.bestSections.push(val);
-                    }
-                    document.querySelectorAll('.choose-section').forEach(function(b) {
-                        b.classList.toggle('active', feedbackState.bestSections.indexOf(b.dataset.value) >= 0);
-                    });
+                    var v = btn.dataset.value;
+                    var i = feedbackState.bestSections.indexOf(v);
+                    if (i >= 0) feedbackState.bestSections.splice(i, 1); else feedbackState.bestSections.push(v);
+                    document.querySelectorAll('.choose-section').forEach(function(b) { b.classList.toggle('active', feedbackState.bestSections.indexOf(b.dataset.value) >= 0); });
                 });
             });
-
-            // Change request
             var fbChange = document.getElementById('fbChange');
-            if (fbChange) fbChange.addEventListener('input', function() { feedbackState.changeRequest = fbChange.value; });
-
-            // Add/remove
-            var fbAddRemove = document.getElementById('fbAddRemove');
-            if (fbAddRemove) fbAddRemove.addEventListener('input', function() { feedbackState.addRemove = fbAddRemove.value; });
-
-            // Reading experience
-            document.querySelectorAll('.choose-reading').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var val = btn.dataset.value;
-                    feedbackState.readingExperience = feedbackState.readingExperience === val ? '' : val;
-                    document.querySelectorAll('.choose-reading').forEach(function(b) {
-                        b.classList.toggle('active', b.dataset.value === feedbackState.readingExperience);
-                    });
-                });
-            });
-
-            // Content amount
-            document.querySelectorAll('.choose-content').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var val = btn.dataset.value;
-                    feedbackState.contentAmount = feedbackState.contentAmount === val ? '' : val;
-                    document.querySelectorAll('.choose-content').forEach(function(b) {
-                        b.classList.toggle('active', b.dataset.value === feedbackState.contentAmount);
-                    });
-                });
-            });
-
-            // Looks
-            document.querySelectorAll('.choose-looks').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var val = btn.dataset.value;
-                    feedbackState.looks = feedbackState.looks === val ? '' : val;
-                    document.querySelectorAll('.choose-looks').forEach(function(b) {
-                        b.classList.toggle('active', b.dataset.value === feedbackState.looks);
-                    });
-                });
-            });
-
-            // Improvement
-            var fbImprovement = document.getElementById('fbImprovement');
-            if (fbImprovement) fbImprovement.addEventListener('input', function() { feedbackState.improvement = fbImprovement.value; });
-
-            // General comments
-            var fbGeneral = document.getElementById('fbGeneral');
-            if (fbGeneral) fbGeneral.addEventListener('input', function() { feedbackState.generalComments = fbGeneral.value; });
-
-            // Submit
-            var submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', function() {
-                    var msg = document.getElementById('fbMsg');
-                    var hasContent = feedbackState.useful || feedbackState.bestSections.length || (feedbackState.changeRequest && feedbackState.changeRequest.trim()) || (feedbackState.addRemove && feedbackState.addRemove.trim()) || feedbackState.readingExperience || feedbackState.contentAmount || feedbackState.looks || (feedbackState.improvement && feedbackState.improvement.trim()) || (feedbackState.generalComments && feedbackState.generalComments.trim());
-                    if (!hasContent) { msg.className = 'feedback-msg error'; msg.textContent = 'Please provide at least one piece of feedback.'; return; }
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Submitting...';
-                    var body = {
-                        action: 'feedback',
-                        user_name: USER,
-                        briefing_date: briefingDate,
-                        section: 'combined',
-                        responses: {
-                            useful: feedbackState.useful,
-                            best_sections: feedbackState.bestSections,
-                            change_request: feedbackState.changeRequest,
-                            add_remove: feedbackState.addRemove,
-                            reading_experience: feedbackState.readingExperience,
-                            content_amount: feedbackState.contentAmount,
-                            looks: feedbackState.looks,
-                            improvement: feedbackState.improvement,
-                            general_comments: feedbackState.generalComments
-                        }
-                    };
-                    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-                        .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); msg.className = 'feedback-msg success'; msg.textContent = 'Thank you! Your feedback has been submitted.'; submitBtn.textContent = 'Submitted &#10003;'; })
-                        .catch(function(err) { console.error(err); msg.className = 'feedback-msg error'; msg.textContent = 'Failed to submit. Please try again.'; submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; });
-                });
-            }
-        }
-
-        init();
-    })();
-    </script>
-</body>
-</html>
+            if (fbChange) fbChan
