@@ -38,6 +38,11 @@
         .news-item a { color: #93c5fd; text-decoration: none; font-size: 0.93rem; line-height: 1.5; display: block; transition: color 0.2s; }
         .news-item a:hover { color: #bfdbfe; text-decoration: underline; }
         .news-source { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .news-category { display: inline-block; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-bottom: 6px; margin-right: 0; font-weight: 500; }
+        .news-category-iran { background: rgba(248,113,113,0.2); color: #fca5a5; }
+        .news-category-perth { background: rgba(45,212,191,0.2); color: #5eead4; }
+        .news-category-ai { background: rgba(167,139,250,0.2); color: #c4b5fd; }
+        .news-category-good { background: rgba(74,222,128,0.2); color: #86efac; }
         .client-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
         .client-card:last-child { margin-bottom: 0; }
         .client-time { font-size: 0.8rem; color: #a78bfa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -53,15 +58,16 @@
         .revenue-amount { font-size: 1.5rem; font-weight: 700; color: #6ee7b7; }
         .revenue-label { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
         .no-appointments { text-align: center; padding: 30px; color: rgba(255,255,255,0.4); font-style: italic; }
-        .feedback-section { margin-top: 8px; }
-        .star-row { display: flex; gap: 8px; margin: 12px 0; }
-        .star-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 1.5rem; width: 44px; height: 44px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .star-btn.active, .star-btn:hover { background: rgba(250,204,21,0.15); border-color: rgba(250,204,21,0.4); color: #facc15; }
-        .section-select { width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; margin-bottom: 12px; appearance: none; cursor: pointer; }
-        .section-select option { background: #1a1a2e; color: #e0e0f0; }
-        textarea.glass-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 80px; margin-bottom: 12px; }
+        .feedback-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); }
+        .feedback-item-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; font-weight: 600; display: block; }
+        .toggle-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .toggle-btn { flex: 1; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .toggle-btn:hover { border-color: rgba(255,255,255,0.25); }
+        .toggle-btn.active { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); color: #c4b5fd; }
+        .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        textarea.glass-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #e0e0f0; font-size: 0.9rem; font-family: inherit; resize: vertical; min-height: 70px; margin-bottom: 12px; }
         textarea.glass-input::placeholder { color: rgba(255,255,255,0.3); }
-        textarea.glass-input:focus, .section-select:focus { outline: none; border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
+        textarea.glass-input:focus { outline: none; border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
         .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
         .tag-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); transition: all 0.2s; }
         .tag-btn.active { background: rgba(99,102,241,0.25); border-color: rgba(99,102,241,0.5); color: #c4b5fd; }
@@ -85,11 +91,13 @@
         .loading-text { color: rgba(255,255,255,0.4); font-size: 0.9rem; }
         .error-state { text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.5); }
         .error-state .icon { font-size: 2rem; margin-bottom: 12px; }
-        @media (max-width: 480px) {
+        @media (max-width: 500px) {
             .container { padding: 16px 10px 40px; }
             .glass { padding: 18px 16px; }
             .header h1 { font-size: 1.3rem; }
-            .star-btn { width: 38px; height: 38px; font-size: 1.3rem; }
+            .feedback-grid { grid-template-columns: 1fr; }
+            .toggle-row { flex-direction: column; }
+            .toggle-btn { width: 100%; }
         }
     </style>
 </head>
@@ -112,9 +120,19 @@
     </div>
     <script>
     (function() {
-        var USER = document.body.getAttribute('data-user') || 'paul';
+        var USER = document.body.getAttribute('data-user') || 'erin';
         var API = 'https://duwwfbohvptdsgrvlskj.supabase.co/functions/v1/serve-morning-briefing';
-        var feedbackState = { rating: 0, section: '', tags: [], comment: '', thoughts: '' };
+        var feedbackState = {
+            useful: '',
+            bestSections: [],
+            changeRequest: '',
+            addRemove: '',
+            readingExperience: '',
+            contentAmount: '',
+            looks: '',
+            improvement: '',
+            generalComments: ''
+        };
 
         function init() {
             fetch(API + '?name=' + USER + '&format=json')
@@ -140,6 +158,16 @@
         function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+        function getCategoryClass(label) {
+            if (!label) return '';
+            var lower = label.toLowerCase();
+            if (lower.includes('iran') || lower.includes('war')) return 'news-category-iran';
+            if (lower.includes('perth') || lower.includes('local')) return 'news-category-perth';
+            if (lower.includes('claude') || lower.includes('ai')) return 'news-category-ai';
+            if (lower.includes('good')) return 'news-category-good';
+            return 'news-category-ai';
+        }
+
         function render(data, briefingDate) {
             document.getElementById('headerDate').textContent = data.displayDate || formatBriefingDate(briefingDate);
             var clients = data.clients || [];
@@ -160,13 +188,22 @@
                 html += '<div class="glass tip-card"><div class="tip-label">Claude Tip of the Day</div><div class="tip-text">' + tipText + '</div></div>';
             }
 
-            // AU News
+            // Curated News
             if (news.length) {
-                html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127462;&#127482;</span> Australian News</div>';
+                html += '<div class="glass"><div class="section-title"><span class="section-icon">&#127462;&#127482;</span> Curated News</div>';
                 news.forEach(function(n) {
-                    html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
-                    if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
-                    html += '</div>';
+                    var hasLabel = n.label && n.emoji;
+                    if (hasLabel) {
+                        html += '<div class="news-item">';
+                        html += '<span class="news-category ' + getCategoryClass(n.label) + '">' + escHtml(n.emoji) + ' ' + escHtml(n.label) + '</span>';
+                        html += '<a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
+                        if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
+                        html += '</div>';
+                    } else {
+                        html += '<div class="news-item"><a href="' + escAttr(n.link) + '" target="_blank" rel="noopener">' + escHtml(n.title) + '</a>';
+                        if (n.source) html += '<div class="news-source">' + escHtml(n.source) + '</div>';
+                        html += '</div>';
+                    }
                 });
                 html += '</div>';
             }
@@ -212,23 +249,53 @@
             }
             html += '</div>';
 
-            // Feedback - Section Rating
-            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#11088;</span> Rate a Section</div>';
-            html += '<select class="section-select" id="fbSection"><option value="">Choose a section...</option><option value="Claude Tip">Claude Tip</option><option value="AU News">Australian News</option><option value="F1 News">Formula 1</option><option value="Schedule">Today\'s Schedule</option></select>';
-            html += '<div class="star-row" id="starRow">';
-            for (var i = 1; i <= 5; i++) html += '<button type="button" class="star-btn" data-r="' + i + '">&#9733;</button>';
+            // Feedback - Panel 1: How was today's briefing?
+            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#128203;</span> How was today\'s briefing?</div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">Was this useful today?</label>';
+            html += '<div class="toggle-row">';
+            html += '<button type="button" class="toggle-btn choose-useful" data-value="yes">Yes</button>';
+            html += '<button type="button" class="toggle-btn choose-useful" data-value="somewhat">Somewhat</button>';
+            html += '<button type="button" class="toggle-btn choose-useful" data-value="no">No</button>';
+            html += '</div></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">Best section today?</label>';
+            html += '<div class="tag-grid" id="bestSectionsGrid">';
+            html += '<button type="button" class="tag-btn choose-section" data-value="Tip">Tip</button>';
+            html += '<button type="button" class="tag-btn choose-section" data-value="News">News</button>';
+            html += '<button type="button" class="tag-btn choose-section" data-value="F1">F1</button>';
+            html += '<button type="button" class="tag-btn choose-section" data-value="Schedule">Schedule</button>';
+            html += '<button type="button" class="tag-btn choose-section" data-value="Revenue">Revenue</button>';
+            html += '</div></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">What would you change?</label>';
+            html += '<textarea class="glass-input" id="fbChange" placeholder="Your suggestions..."></textarea></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">Anything to add or remove?</label>';
+            html += '<textarea class="glass-input" id="fbAddRemove" placeholder="Content feedback..."></textarea></div>';
             html += '</div>';
-            html += '<textarea class="glass-input" id="fbComment" placeholder="Any comments on this section?"></textarea></div>';
 
-            // Feedback - Quick Tags
-            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#127991;&#65039;</span> Quick Feedback</div>';
-            html += '<p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:10px;">What would you like more of?</p>';
-            html += '<div class="tag-grid" id="tagGrid">';
-            ['More detail','Less detail','More news','More F1','Client history','Revenue focus','Team updates','Weather'].forEach(function(t) {
-                html += '<button type="button" class="tag-btn" data-tag="' + escAttr(t) + '">' + escHtml(t) + '</button>';
-            });
+            // Feedback - Panel 2: Design & experience
+            html += '<div class="glass feedback-section"><div class="section-title"><span class="section-icon">&#128394;</span> Design & experience</div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">Reading experience?</label>';
+            html += '<div class="toggle-row">';
+            html += '<button type="button" class="toggle-btn choose-reading" data-value="easy">Easy</button>';
+            html += '<button type="button" class="toggle-btn choose-reading" data-value="fine">Fine</button>';
+            html += '<button type="button" class="toggle-btn choose-reading" data-value="hard">Hard to read</button>';
+            html += '</div></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">Content amount?</label>';
+            html += '<div class="toggle-row">';
+            html += '<button type="button" class="toggle-btn choose-content" data-value="too_little">Too little</button>';
+            html += '<button type="button" class="toggle-btn choose-content" data-value="just_right">Just right</button>';
+            html += '<button type="button" class="toggle-btn choose-content" data-value="too_much">Too much</button>';
+            html += '</div></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">How does it look?</label>';
+            html += '<div class="toggle-row">';
+            html += '<button type="button" class="toggle-btn choose-looks" data-value="love_it">Love it</button>';
+            html += '<button type="button" class="toggle-btn choose-looks" data-value="its_fine">It\'s fine</button>';
+            html += '<button type="button" class="toggle-btn choose-looks" data-value="needs_work">Needs work</button>';
+            html += '</div></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">What would make this better?</label>';
+            html += '<textarea class="glass-input" id="fbImprovement" placeholder="Design suggestions..."></textarea></div>';
+            html += '<div class="feedback-item"><label class="feedback-item-label">General comments</label>';
+            html += '<textarea class="glass-input" id="fbGeneral" placeholder="Any other thoughts..."></textarea></div>';
             html += '</div>';
-            html += '<textarea class="glass-input" id="fbThoughts" placeholder="Anything else on your mind?"></textarea></div>';
 
             // Submit
             html += '<button class="submit-btn" id="submitBtn">Submit Feedback</button>';
@@ -252,45 +319,106 @@
         }
 
         function bindFeedback(briefingDate) {
-            document.querySelectorAll('#starRow .star-btn').forEach(function(btn) {
+            // Useful toggle
+            document.querySelectorAll('.choose-useful').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    var r = parseInt(btn.dataset.r);
-                    feedbackState.rating = r;
-                    document.querySelectorAll('#starRow .star-btn').forEach(function(b, i) { b.classList.toggle('active', i < r); });
+                    var val = btn.dataset.value;
+                    feedbackState.useful = feedbackState.useful === val ? '' : val;
+                    document.querySelectorAll('.choose-useful').forEach(function(b) {
+                        b.classList.toggle('active', b.dataset.value === feedbackState.useful);
+                    });
                 });
             });
-            var sel = document.getElementById('fbSection');
-            if (sel) sel.addEventListener('change', function() { feedbackState.section = sel.value; });
-            var cmt = document.getElementById('fbComment');
-            if (cmt) cmt.addEventListener('input', function() { feedbackState.comment = cmt.value; });
-            document.querySelectorAll('#tagGrid .tag-btn').forEach(function(btn) {
+
+            // Best sections multi-select
+            document.querySelectorAll('.choose-section').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    var tag = btn.dataset.tag;
-                    btn.classList.toggle('active');
-                    if (feedbackState.tags.indexOf(tag) >= 0) { feedbackState.tags = feedbackState.tags.filter(function(t) { return t !== tag; }); }
-                    else { feedbackState.tags.push(tag); }
+                    var val = btn.dataset.value;
+                    if (feedbackState.bestSections.indexOf(val) >= 0) {
+                        feedbackState.bestSections = feedbackState.bestSections.filter(function(s) { return s !== val; });
+                    } else {
+                        feedbackState.bestSections.push(val);
+                    }
+                    document.querySelectorAll('.choose-section').forEach(function(b) {
+                        b.classList.toggle('active', feedbackState.bestSections.indexOf(b.dataset.value) >= 0);
+                    });
                 });
             });
-            var th = document.getElementById('fbThoughts');
-            if (th) th.addEventListener('input', function() { feedbackState.thoughts = th.value; });
+
+            // Change request
+            var fbChange = document.getElementById('fbChange');
+            if (fbChange) fbChange.addEventListener('input', function() { feedbackState.changeRequest = fbChange.value; });
+
+            // Add/remove
+            var fbAddRemove = document.getElementById('fbAddRemove');
+            if (fbAddRemove) fbAddRemove.addEventListener('input', function() { feedbackState.addRemove = fbAddRemove.value; });
+
+            // Reading experience
+            document.querySelectorAll('.choose-reading').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var val = btn.dataset.value;
+                    feedbackState.readingExperience = feedbackState.readingExperience === val ? '' : val;
+                    document.querySelectorAll('.choose-reading').forEach(function(b) {
+                        b.classList.toggle('active', b.dataset.value === feedbackState.readingExperience);
+                    });
+                });
+            });
+
+            // Content amount
+            document.querySelectorAll('.choose-content').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var val = btn.dataset.value;
+                    feedbackState.contentAmount = feedbackState.contentAmount === val ? '' : val;
+                    document.querySelectorAll('.choose-content').forEach(function(b) {
+                        b.classList.toggle('active', b.dataset.value === feedbackState.contentAmount);
+                    });
+                });
+            });
+
+            // Looks
+            document.querySelectorAll('.choose-looks').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var val = btn.dataset.value;
+                    feedbackState.looks = feedbackState.looks === val ? '' : val;
+                    document.querySelectorAll('.choose-looks').forEach(function(b) {
+                        b.classList.toggle('active', b.dataset.value === feedbackState.looks);
+                    });
+                });
+            });
+
+            // Improvement
+            var fbImprovement = document.getElementById('fbImprovement');
+            if (fbImprovement) fbImprovement.addEventListener('input', function() { feedbackState.improvement = fbImprovement.value; });
+
+            // General comments
+            var fbGeneral = document.getElementById('fbGeneral');
+            if (fbGeneral) fbGeneral.addEventListener('input', function() { feedbackState.generalComments = fbGeneral.value; });
+
+            // Submit
             var submitBtn = document.getElementById('submitBtn');
             if (submitBtn) {
                 submitBtn.addEventListener('click', function() {
                     var msg = document.getElementById('fbMsg');
-                    var hasContent = feedbackState.rating || feedbackState.tags.length || (feedbackState.comment && feedbackState.comment.trim()) || (feedbackState.thoughts && feedbackState.thoughts.trim());
+                    var hasContent = feedbackState.useful || feedbackState.bestSections.length || (feedbackState.changeRequest && feedbackState.changeRequest.trim()) || (feedbackState.addRemove && feedbackState.addRemove.trim()) || feedbackState.readingExperience || feedbackState.contentAmount || feedbackState.looks || (feedbackState.improvement && feedbackState.improvement.trim()) || (feedbackState.generalComments && feedbackState.generalComments.trim());
                     if (!hasContent) { msg.className = 'feedback-msg error'; msg.textContent = 'Please provide at least one piece of feedback.'; return; }
                     submitBtn.disabled = true;
                     submitBtn.textContent = 'Submitting...';
                     var body = {
+                        action: 'feedback',
+                        user_name: USER,
                         briefing_date: briefingDate,
-                        recipient_name: USER,
-                        rating: feedbackState.rating || null,
-                        tags: feedbackState.tags,
-                        feedback_text: [
-                            feedbackState.section ? 'Section: ' + feedbackState.section : '',
-                            feedbackState.comment ? 'Comment: ' + feedbackState.comment : '',
-                            feedbackState.thoughts ? 'Thoughts: ' + feedbackState.thoughts : ''
-                        ].filter(Boolean).join(' | ')
+                        section: 'combined',
+                        responses: {
+                            useful: feedbackState.useful,
+                            best_sections: feedbackState.bestSections,
+                            change_request: feedbackState.changeRequest,
+                            add_remove: feedbackState.addRemove,
+                            reading_experience: feedbackState.readingExperience,
+                            content_amount: feedbackState.contentAmount,
+                            looks: feedbackState.looks,
+                            improvement: feedbackState.improvement,
+                            general_comments: feedbackState.generalComments
+                        }
                     };
                     fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
                         .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); msg.className = 'feedback-msg success'; msg.textContent = 'Thank you! Your feedback has been submitted.'; submitBtn.textContent = 'Submitted &#10003;'; })
