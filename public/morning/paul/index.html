@@ -337,8 +337,16 @@
                         html += '<div class="client-meta" style="margin-top:4px;">' + esc(c.time) + (c.duration ? ' \u2022 ' + c.duration + ' min' : '') + '</div>';
                     }
 
-                    // Address line (especially for mobile)
-                    if (c.address) {
+                    // Drive time + suburb (replaces pin address)
+                    if (c.drive_time_label) {
+                        var driveText = '&#x1F697; ' + esc(c.drive_time_label);
+                        // Extract suburb from address for context
+                        var addrParts = (c.address || '').split(',').map(function(s) { return s.trim(); });
+                        var suburb = addrParts.length > 1 ? addrParts[1] : (addrParts[0] || '');
+                        if (suburb) driveText += ' from ' + esc(suburb);
+                        if (c.access_notes) driveText += ' \u2022 ' + esc(c.access_notes);
+                        html += '<div class="address-line">' + driveText + '</div>';
+                    } else if (c.address) {
                         var addrText = '&#x1F4CD; ' + esc(c.address);
                         if (c.access_notes) addrText += ' \u2022 ' + esc(c.access_notes);
                         html += '<div class="address-line">' + addrText + '</div>';
