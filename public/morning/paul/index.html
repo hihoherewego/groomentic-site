@@ -313,8 +313,12 @@
                     html += '</div>';
                 }
 
+                // S78: seeded from tenant_settings.mobile_days=['friday']. Reconcile with shared config in S79.
+                // Belt-and-braces day-guard — server pipeline already nulls peakHour on non-mobile days.
+                var __briefingDayIdx = new Date(briefingDate + 'T00:00:00').getDay();
+                var __isMobileDay = __briefingDayIdx === 5; // Friday
                 // Peak-hour route summary (mobile days only, when computation succeeded)
-                if (data.peakHour && data.peakHour.peakMinutes > 0) {
+                if (__isMobileDay && data.peakHour && data.peakHour.peakMinutes > 0) {
                     var ph = data.peakHour;
                     function formatMins(m) {
                         if (m == null) return '';
