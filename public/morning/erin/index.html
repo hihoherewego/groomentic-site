@@ -62,6 +62,24 @@
         .depart-banner .depart-time { font-size: 1.15rem; font-weight: 700; color: #fbbf24; }
         .depart-banner .tag-mobile { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: rgba(248,113,113,0.15); color: #fca5a5; text-transform: uppercase; letter-spacing: 0.5px; margin-left: auto; }
 
+        .peak-hour-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.75);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .peak-hour-card .ph-total { color: #f0efff; font-weight: 600; }
+        .peak-hour-card .ph-penalty { color: #fbbf24; font-weight: 600; }
+        .peak-hour-card .ph-penalty-none { color: #86efac; font-weight: 600; }
+        .peak-hour-card .ph-note { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-left: auto; }
+
         .client-card {
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.07);
@@ -292,6 +310,32 @@
                     html += '<span>&#x1F697;</span>';
                     html += '<span>Depart by <span class="depart-time">' + esc(db.depart_time) + '</span> \u2192 ' + esc(db.first_stop) + ' first</span>';
                     html += '<span class="tag-mobile">Mobile Day</span>';
+                    html += '</div>';
+                }
+
+                // Peak-hour route summary (mobile days only, when computation succeeded)
+                if (data.peakHour && data.peakHour.peakMinutes > 0) {
+                    var ph = data.peakHour;
+                    function formatMins(m) {
+                        if (m == null) return '';
+                        if (m < 60) return 'about ' + m + ' min';
+                        var hrs = Math.floor(m / 60);
+                        var rem = m % 60;
+                        return rem > 0 ? 'about ' + hrs + 'h ' + rem + 'm' : 'about ' + hrs + 'h';
+                    }
+                    var totalLabel = formatMins(ph.peakMinutes) + ' of driving today';
+                    var penaltyLabel;
+                    if (ph.penaltyMinutes >= 5) {
+                        penaltyLabel = '<span class="ph-penalty">peak traffic adds ' + formatMins(ph.penaltyMinutes).replace('about ', 'about +') + '</span>';
+                    } else {
+                        penaltyLabel = '<span class="ph-penalty-none">no peak-hour penalty</span>';
+                    }
+                    html += '<div class="peak-hour-card">';
+                    html += '<span>&#x1F6E3;&#xFE0F;</span>';
+                    html += '<span class="ph-total">' + esc(totalLabel) + '</span>';
+                    html += '<span>\u2014</span>';
+                    html += penaltyLabel;
+                    html += '<span class="ph-note">' + ph.stopCount + ' stop' + (ph.stopCount === 1 ? '' : 's') + ' \u2022 Google pessimistic traffic</span>';
                     html += '</div>';
                 }
 
