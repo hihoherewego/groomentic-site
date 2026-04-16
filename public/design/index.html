@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GroomOS — Design Playground</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; height: 100vh; }
+
+  /* ========================================
+     CSS CUSTOM PROPERTIES — Slider-driven
+     Defaults match current production values.
+     ======================================== */
+  :root {
+    /* Card */
+    --card-bg-opacity: 0.2;
+    --card-border-radius: 14;
+    --card-shadow-spread: 16;
+    --card-shadow-blur: 48;
+    --card-padding: 8;
+    /* Columns */
+    --col-salon: #FAF7F2;
+    --col-mobile: #FFF0E0;
+    --col-off: #E8DFD4;
+    --col-today: rgba(219,234,254,0.3);
+    /* Glass */
+    --glass-blur: 12;
+    --glass-bg-opacity: 0.2;
+    --glass-border-opacity: 0.3;
+    --glass-noise: 0.04;
+    /* Typography */
+    --type-scale: 1;
+    --type-weight: 500;
+    --type-line-height: 1.4;
+    --type-color: #5E4B66;
+    /* Light bands */
+    --light-count: 12;
+    --light-thickness: 65;
+    --light-color: 255,255,255;
+    --light-opacity: 0.28;
+    --light-angle: 35;
+  }
+
+  /* ========================================
+     GLASSMORPHISM SYSTEM
+     ======================================== */
+  .glass-header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 50%, rgba(235,228,240,0.35) 100%);
+    backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.05);
+    box-shadow:
+      inset 0 3px 6px -1px rgba(255,255,255,0.8),
+      inset 3px 0 6px -1px rgba(255,255,255,0.4),
+      inset 0 -2px 4px -1px rgba(80,50,100,0.08),
+      0 8px 24px -4px rgba(80,50,100,0.1),
+      0 2px 6px rgba(0,0,0,0.04);
+  }
+
+  .glass-card {
+    position: relative;
+    backdrop-filter: blur(calc(var(--glass-blur) * 1px)) saturate(160%);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1px)) saturate(160%);
+    border: 1px solid rgba(255,255,255, var(--glass-border-opacity));
+    border-radius: calc(var(--card-border-radius) * 1px);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.03),
+      0 8px calc(var(--card-shadow-spread) * 1px) rgba(0,0,0,0.06),
+      0 calc(var(--card-shadow-spread) * 1px) calc(var(--card-shadow-blur) * 1px) calc(var(--card-shadow-spread) * -0.5px) rgba(0,0,0,0.1),
+      inset 0 1px 1px rgba(255,255,255,0.7),
+      inset 0 -1px 1px rgba(0,0,0,0.04);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    padding: calc(var(--card-padding) * 1px);
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+    border-radius: calc(var(--card-border-radius) * 1px) calc(var(--card-border-radius) * 1px) 0 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 8px rgba(0,0,0,0.04),
+      0 12px 24px rgba(0,0,0,0.08),
+      0 24px 60px -8px rgba(0,0,0,0.14),
+      inset 0 1px 1px rgba(255,255,255,0.8),
+      inset 0 -1px 1px rgba(0,0,0,0.05);
+  }
+
+  /* Off-day dappled tree light */
+  .off-dappled {
+    background:
+      radial-gradient(ellipse 80px 60px at 30% 15%, rgba(255,255,255,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 50px 70px at 70% 8%, rgba(255,255,255,0.28) 0%, transparent 70%),
+      radial-gradient(ellipse 90px 40px at 15% 35%, rgba(255,255,255,0.25) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 80px at 55% 28%, rgba(255,255,255,0.32) 0%, transparent 70%),
+      radial-gradient(ellipse 70px 50px at 85% 42%, rgba(255,255,255,0.28) 0%, transparent 70%),
+      radial-gradient(ellipse 45px 65px at 40% 52%, rgba(255,255,255,0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 85px 55px at 20% 65%, rgba(255,255,255,0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 55px 75px at 65% 58%, rgba(255,255,255,0.26) 0%, transparent 70%),
+      radial-gradient(ellipse 75px 45px at 80% 75%, rgba(255,255,255,0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 65px 85px at 35% 80%, rgba(255,255,255,0.24) 0%, transparent 70%),
+      radial-gradient(ellipse 50px 60px at 10% 90%, rgba(255,255,255,0.28) 0%, transparent 70%),
+      radial-gradient(ellipse 80px 50px at 60% 92%, rgba(255,255,255,0.22) 0%, transparent 70%);
+  }
+
+  /* Time gutter */
+  .slot-height { height: 72px; }
+  .time-line { height: 2px; background: #7AB6D9; opacity: 0.8; }
+  .time-dot { width: 10px; height: 10px; border-radius: 50%; background: #7AB6D9; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+  /* Scrollbar */
+  .calendar-scroll::-webkit-scrollbar { width: 6px; }
+  .calendar-scroll::-webkit-scrollbar-track { background: transparent; }
+  .calendar-scroll::-webkit-scrollbar-thumb { background: #C4B5CB; border-radius: 3px; }
+
+  /* Control panel */
+  .ctrl-group { border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 12px; }
+  .ctrl-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .ctrl-label { font-size: 11px; color: #8FA39B; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .ctrl-label span:last-child { color: #6B7F72; font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+  .ctrl-group h3 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7F72; margin-bottom: 10px; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #2A3D32; outline: none; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #D5CD94; border: 2px solid #1A2B23; cursor: pointer; }
+  input[type="color"] { -webkit-appearance: none; border: 1px solid #2A3D32; border-radius: 4px; width: 28px; height: 20px; cursor: pointer; padding: 0; }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 1px; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LAYOUT: Sidebar | Content | Control Panel ===== -->
+<div class="h-screen flex overflow-hidden">
+
+  <!-- ===== ZONE 1a: SIDEBAR — matches production layout.tsx ===== -->
+  <aside class="w-56 bg-[#1A2B23] border-r border-[#2A3D32] flex flex-col h-full shrink-0 shadow-[4px_0_30px_rgba(0,0,0,0.15)] z-20">
+    <div class="px-4 py-5 border-b border-[#2A3D32]">
+      <h2 class="text-sm font-semibold text-white truncate">Purrf Cat Grooming</h2>
+      <p class="text-xs text-[#6B7F72] mt-0.5">Paul</p>
+    </div>
+    <nav class="flex-1 px-2 py-4 space-y-1">
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Overview</a>
+      <a class="block px-3 py-2 text-sm text-white bg-white/10 rounded-lg">Calendar</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Book for Client</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Clients</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Pets</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Client Comms</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Intake</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Waitlist</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Services</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-[#D0DDD6] rounded-lg transition-all duration-200">Reporting</a>
+    </nav>
+    <div class="px-2 py-4 border-t border-[#2A3D32]">
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-white rounded-md transition-colors duration-200">Settings</a>
+      <a class="block px-3 py-2 text-sm text-[#8FA39B] hover:bg-white/10 hover:text-white rounded-md transition-colors duration-200">Sign out</a>
+      <p class="mt-3 text-[10px] text-[#4A5D52] tracking-wide px-3">Design Playground</p>
+    </div>
+  </aside>
+
+  <!-- ===== ZONE 1b + ZONE 2: Top bar + Content ===== -->
+  <div class="flex-1 flex flex-col relative overflow-hidden">
+    <!-- Background orbs -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div class="absolute -top-20 left-48 w-96 h-96 rounded-full" style="background:radial-gradient(circle, rgba(200,228,202,0.3) 0%, transparent 70%)"></div>
+      <div class="absolute top-1/4 right-1/3 w-72 h-72 rounded-full" style="background:radial-gradient(circle, rgba(166,147,172,0.18) 0%, transparent 70%)"></div>
+      <div class="absolute bottom-20 left-1/3 w-80 h-80 rounded-full" style="background:radial-gradient(circle, rgba(122,182,217,0.12) 0%, transparent 70%)"></div>
+      <div class="absolute top-1/2 right-10 w-64 h-64 rounded-full" style="background:radial-gradient(circle, rgba(213,205,148,0.15) 0%, transparent 70%)"></div>
+    </div>
+    <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #F7F6F3, #F0EEE9, #F3EFF5);"></div>
+
+    <!-- Top bar — glassmorphic -->
+    <div class="glass-header flex items-center justify-between px-6 py-3 relative z-10" style="border-bottom:1px solid rgba(255,255,255,0.6);">
+      <div class="flex items-center gap-4">
+        <h1 class="text-lg font-bold text-gray-900">Calendar</h1>
+        <span class="text-sm text-gray-500">Fri 18 Apr 2026</span>
+        <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Today</button>
+        <div class="flex gap-1">
+          <button class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2L4 8l6 6"/></svg></button>
+          <button class="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3 text-xs text-gray-500">
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded" style="background:var(--col-salon);border:1px solid #E8E0D4;"></div><span>Salon</span></div>
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded" style="background:var(--col-mobile);border:1px solid #F0D4A8;"></div><span>Mobile</span></div>
+          <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded" style="background:var(--col-off);border:1px solid #D5C9B8;"></div><span>Off</span></div>
+        </div>
+        <button class="px-3 py-1.5 text-xs font-semibold rounded-lg text-white" style="background:linear-gradient(135deg,#A693AC,#8B7893);">Summary</button>
+        <div class="flex bg-gray-100 rounded-lg p-0.5">
+          <button class="px-3 py-1.5 text-xs font-medium bg-white text-gray-900 shadow-sm rounded-md">Day</button>
+          <button class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 rounded-md">3 Day</button>
+          <button class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 rounded-md">Week</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar content area -->
+    <div class="flex-1 flex relative z-10 calendar-scroll" style="overflow-y:auto;">
+      <!-- Time gutter -->
+      <div class="w-16 flex-shrink-0 border-r border-gray-200 bg-white/50">
+        <div id="timeLabels"></div>
+      </div>
+      <!-- Day column -->
+      <div class="flex-1" id="dayColumn"></div>
+    </div>
+  </div>
+
+  <!-- ===== ZONE 3: CONTROL PANEL ===== -->
+  <aside class="w-72 bg-[#1A2B23] border-l border-[#2A3D32] flex flex-col h-full shrink-0 overflow-y-auto z-20" style="scrollbar-width:thin;scrollbar-color:#2A3D32 transparent;">
+    <div class="px-4 py-4 border-b border-[#2A3D32]">
+      <h2 class="text-xs font-bold text-[#D5CD94] uppercase tracking-widest">Design Controls</h2>
+      <p class="text-[10px] text-[#4A5D52] mt-1">Slider → CSS var → instant update</p>
+    </div>
+    <div class="px-4 py-4 space-y-0" id="controls"></div>
+    <div class="px-4 py-3 border-t border-[#2A3D32] mt-auto">
+      <button onclick="resetAll()" class="w-full px-3 py-2 text-xs font-semibold text-[#D5CD94] border border-[#2A3D32] rounded-lg hover:bg-white/5 transition-colors">Reset to Defaults</button>
+      <button onclick="copyURL()" class="w-full mt-2 px-3 py-2 text-xs font-semibold text-[#1A2B23] bg-[#D5CD94] rounded-lg hover:bg-[#C5BD84] transition-colors">Copy Shareable URL</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+// ===== SLIDER DEFINITIONS =====
+var CONTROLS = [
+  { group: 'Card', items: [
+    { id: 'card-bg-opacity', label: 'Background opacity', prop: '--card-bg-opacity', min: 0, max: 1, step: 0.05, def: 0.2, unit: '' },
+    { id: 'card-border-radius', label: 'Border radius', prop: '--card-border-radius', min: 0, max: 24, step: 1, def: 14, unit: 'px' },
+    { id: 'card-shadow-spread', label: 'Shadow spread', prop: '--card-shadow-spread', min: 0, max: 40, step: 1, def: 16, unit: 'px' },
+    { id: 'card-shadow-blur', label: 'Shadow blur', prop: '--card-shadow-blur', min: 0, max: 80, step: 1, def: 48, unit: 'px' },
+    { id: 'card-padding', label: 'Padding', prop: '--card-padding', min: 4, max: 20, step: 1, def: 8, unit: 'px' },
+  ]},
+  { group: 'Columns', items: [
+    { id: 'col-salon', label: 'Salon', prop: '--col-salon', type: 'color', def: '#FAF7F2' },
+    { id: 'col-mobile', label: 'Mobile', prop: '--col-mobile', type: 'color', def: '#FFF0E0' },
+    { id: 'col-off', label: 'Off day', prop: '--col-off', type: 'color', def: '#E8DFD4' },
+  ]},
+  { group: 'Glass', items: [
+    { id: 'glass-blur', label: 'Backdrop blur', prop: '--glass-blur', min: 0, max: 50, step: 1, def: 12, unit: 'px' },
+    { id: 'glass-bg-opacity', label: 'Background opacity', prop: '--glass-bg-opacity', min: 0, max: 1, step: 0.05, def: 0.2, unit: '' },
+    { id: 'glass-border-opacity', label: 'Border opacity', prop: '--glass-border-opacity', min: 0, max: 1, step: 0.05, def: 0.3, unit: '' },
+    { id: 'glass-noise', label: 'Noise intensity', prop: '--glass-noise', min: 0, max: 0.15, step: 0.01, def: 0.04, unit: '' },
+  ]},
+  { group: 'Typography', items: [
+    { id: 'type-scale', label: 'Size scale', prop: '--type-scale', min: 0.7, max: 1.5, step: 0.05, def: 1, unit: 'x' },
+    { id: 'type-weight', label: 'Weight', prop: '--type-weight', min: 300, max: 800, step: 100, def: 500, unit: '' },
+    { id: 'type-line-height', label: 'Line height', prop: '--type-line-height', min: 1, max: 2, step: 0.1, def: 1.4, unit: '' },
+    { id: 'type-color', label: 'Text colour', prop: '--type-color', type: 'color', def: '#5E4B66' },
+  ]},
+  { group: 'Light Bands', items: [
+    { id: 'light-count', label: 'Band count', prop: '--light-count', min: 0, max: 30, step: 1, def: 12, unit: '' },
+    { id: 'light-thickness', label: 'Thickness', prop: '--light-thickness', min: 20, max: 120, step: 5, def: 65, unit: 'px' },
+    { id: 'light-opacity', label: 'Opacity', prop: '--light-opacity', min: 0, max: 0.6, step: 0.02, def: 0.28, unit: '' },
+    { id: 'light-angle', label: 'Angle', prop: '--light-angle', min: 0, max: 90, step: 5, def: 35, unit: 'deg' },
+  ]},
+];
+
+// ===== SAMPLE APPOINTMENT DATA =====
+var APPOINTMENTS = [
+  { start: 8, duration: 2.5, client: 'Kate Russell', pet: 'Caesar', petSex: 'male', breed: 'Persian', age: 7, visits: 22, services: 'Shave & Bathe + Call Out', tags: ['REGULAR','MOBILE-VIP'], status: 'confirmed', rating: 4 },
+  { start: 11, duration: 2, client: 'Rachel Adams', pet: 'Willow', petSex: 'female', breed: 'Siberian', age: 1, visits: 0, services: 'Kitten Intro Groom', tags: ['NEW','KITTEN'], status: 'confirmed', rating: null },
+  { start: 13.5, duration: 2.5, client: 'Em Walter', pet: 'Lil', petSex: 'female', breed: 'Ragdoll', age: 3, visits: 8, services: 'Mobile Lion Shave + Call Out', tags: ['MOBILE-REGULAR'], status: 'in_progress', rating: 5 },
+  { start: 16.5, duration: 2, client: 'Tom Henderson', pet: 'Zeus', petSex: 'male', breed: 'Norwegian Forest', age: 6, visits: 15, services: 'FCG + Sanitary + Nails', tags: ['MOBILE-VIP','FEISTY'], status: 'completed', rating: 5 },
+];
+
+var START_HOUR = 7;
+var END_HOUR = 20;
+var SLOT_HEIGHT = 72;
+
+// ===== BUILD CONTROL PANEL =====
+function buildControls() {
+  var html = '';
+  CONTROLS.forEach(function(group) {
+    html += '<div class="ctrl-group">';
+    html += '<h3>' + group.group + '</h3>';
+    group.items.forEach(function(c) {
+      if (c.type === 'color') {
+        html += '<div class="ctrl-label"><span>' + c.label + '</span><input type="color" id="' + c.id + '" value="' + c.def + '" data-prop="' + c.prop + '" data-type="color"></div>';
+      } else {
+        var dispVal = c.def + (c.unit || '');
+        html += '<div class="ctrl-label"><span>' + c.label + '</span><span id="v_' + c.id + '">' + dispVal + '</span></div>';
+        html += '<input type="range" id="' + c.id + '" min="' + c.min + '" max="' + c.max + '" step="' + c.step + '" value="' + c.def + '" data-prop="' + c.prop + '" data-unit="' + (c.unit||'') + '">';
+      }
+    });
+    html += '</div>';
+  });
+  document.getElementById('controls').innerHTML = html;
+
+  // Bind events
+  CONTROLS.forEach(function(group) {
+    group.items.forEach(function(c) {
+      var el = document.getElementById(c.id);
+      el.addEventListener('input', function() {
+        applyValue(c, el.value);
+        updateURL();
+      });
+    });
+  });
+}
+
+function applyValue(ctrl, value) {
+  if (ctrl.type === 'color') {
+    document.documentElement.style.setProperty(ctrl.prop, value);
+  } else {
+    document.documentElement.style.setProperty(ctrl.prop, value);
+    var display = document.getElementById('v_' + ctrl.id);
+    if (display) display.textContent = value + (ctrl.unit || '');
+  }
+  renderCalendar();
+}
+
+// ===== URL STATE PERSISTENCE =====
+function updateURL() {
+  var params = new URLSearchParams();
+  CONTROLS.forEach(function(group) {
+    group.items.forEach(function(c) {
+      var el = document.getElementById(c.id);
+      if (el.value !== String(c.def)) {
+        params.set(c.id, el.value);
+      }
+    });
+  });
+  var qs = params.toString();
+  var newUrl = window.location.pathname + (qs ? '?' + qs : '');
+  history.replaceState(null, '', newUrl);
+}
+
+function loadFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  CONTROLS.forEach(function(group) {
+    group.items.forEach(function(c) {
+      var val = params.get(c.id);
+      if (val != null) {
+        var el = document.getElementById(c.id);
+        el.value = val;
+        applyValue(c, val);
+      }
+    });
+  });
+}
+
+function resetAll() {
+  CONTROLS.forEach(function(group) {
+    group.items.forEach(function(c) {
+      var el = document.getElementById(c.id);
+      el.value = c.def;
+      applyValue(c, String(c.def));
+    });
+  });
+  history.replaceState(null, '', window.location.pathname);
+}
+
+function copyURL() {
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    var btn = event.target;
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+}
+
+// ===== RENDER CALENDAR =====
+function renderCalendar() {
+  var root = getComputedStyle(document.documentElement);
+
+  // Time labels
+  var labelHtml = '';
+  for (var h = START_HOUR; h < END_HOUR; h++) {
+    var label = h === 0 ? '12 AM' : h < 12 ? h + ' AM' : h === 12 ? '12 PM' : (h-12) + ' PM';
+    labelHtml += '<div class="slot-height flex items-start justify-end pr-2" style="border-bottom:1px solid rgba(243,244,246,0.8);">'
+      + '<span class="text-[10px] text-gray-400 -mt-1.5">' + label + '</span></div>';
+  }
+  document.getElementById('timeLabels').innerHTML = labelHtml;
+
+  // Read CSS vars for column colour
+  var colBg = root.getPropertyValue('--col-mobile').trim() || '#FFF0E0';
+  var typeColor = root.getPropertyValue('--type-color').trim() || '#5E4B66';
+  var typeScale = parseFloat(root.getPropertyValue('--type-scale')) || 1;
+  var typeWeight = parseInt(root.getPropertyValue('--type-weight')) || 500;
+  var typeLineHeight = parseFloat(root.getPropertyValue('--type-line-height')) || 1.4;
+  var cardBgOp = parseFloat(root.getPropertyValue('--card-bg-opacity')) || 0.2;
+  var lightCount = parseInt(root.getPropertyValue('--light-count')) || 12;
+  var lightThickness = parseInt(root.getPropertyValue('--light-thickness')) || 65;
+  var lightOpacity = parseFloat(root.getPropertyValue('--light-opacity')) || 0.28;
+  var lightAngle = parseInt(root.getPropertyValue('--light-angle')) || 35;
+
+  var gridHeight = (END_HOUR - START_HOUR) * SLOT_HEIGHT;
+
+  var html = '';
+  // Column header
+  html += '<div class="sticky top-0 z-20 border-b" style="border-color:rgba(255,255,255,0.6);height:60px;background:#F5DFC8;">';
+  html += '<div class="h-full flex flex-col items-center justify-center">';
+  html += '<div class="text-sm font-semibold" style="color:#8B5E2F;">Fri</div>';
+  html += '<div class="text-xs" style="color:#8B5E2F;opacity:0.7;">18 Apr</div>';
+  html += '</div></div>';
+
+  // Grid area
+  html += '<div class="relative" style="height:' + gridHeight + 'px;background:' + colBg + ';">';
+
+  // Hour lines
+  for (var h = START_HOUR; h < END_HOUR; h++) {
+    html += '<div style="height:' + SLOT_HEIGHT + 'px;border-bottom:1px solid rgba(243,244,246,0.8);"></div>';
+  }
+
+  // Light bands
+  if (lightCount > 0) {
+    var bandHtml = '';
+    var spacing = gridHeight / (lightCount + 1);
+    for (var i = 1; i <= lightCount; i++) {
+      var y = i * spacing;
+      bandHtml += '<div style="position:absolute;left:0;right:0;top:' + y + 'px;height:' + lightThickness + 'px;'
+        + 'background:linear-gradient(180deg, transparent 0%, rgba(' + (root.getPropertyValue('--light-color').trim()||'255,255,255') + ',' + lightOpacity + ') 50%, transparent 100%);'
+        + 'transform:rotate(' + lightAngle + 'deg);transform-origin:center;pointer-events:none;z-index:0;"></div>';
+    }
+    html += bandHtml;
+  }
+
+  // Current time indicator (fake 10:30 for demo)
+  var currentHour = 10.5;
+  var timeTop = (currentHour - START_HOUR) * SLOT_HEIGHT;
+  html += '<div class="absolute left-0 right-0 z-10 flex items-center" style="top:' + timeTop + 'px;">';
+  html += '<div class="time-dot" style="margin-left:-5px;"></div>';
+  html += '<div class="time-line flex-1"></div>';
+  html += '</div>';
+
+  // Appointment cards
+  APPOINTMENTS.forEach(function(appt, idx) {
+    var top = (appt.start - START_HOUR) * SLOT_HEIGHT;
+    var height = appt.duration * SLOT_HEIGHT;
+
+    var isMale = appt.petSex === 'male';
+    var nameColor = isMale ? '#2563EB' : '#DB2777';
+    var nameBg = isMale ? '#DBEAFE' : '#FCE7F3';
+    var candleBody = isMale ? '#93C5FD' : '#F9A8D4';
+    var candleDark = isMale ? '#2563EB' : '#DB2777';
+
+    var statusBadge = { confirmed: { bg: 'rgba(219,234,254,0.25)', text: '#1D4ED8', label: 'Confirmed' }, in_progress: { bg: 'rgba(254,243,199,0.25)', text: '#92400E', label: 'In Progress' }, completed: { bg: 'rgba(209,250,229,0.25)', text: '#065F46', label: 'Completed' } };
+    var sb = statusBadge[appt.status] || statusBadge.confirmed;
+
+    html += '<div class="glass-card absolute left-3 right-3" style="top:' + top + 'px;height:' + Math.max(height, 50) + 'px;z-index:2;'
+      + 'background:rgba(255,255,255,' + cardBgOp + ');'
+      + 'font-size:calc(' + typeScale + ' * 12px);font-weight:' + typeWeight + ';line-height:' + typeLineHeight + ';color:' + typeColor + ';">';
+
+    // Row 1: Client name + visit badge
+    html += '<div class="flex items-center gap-1.5 relative" style="z-index:2;">';
+    html += '<span class="text-xs font-bold truncate flex-1 inline-block px-1.5 py-0.5 rounded-md" style="background:rgba(0,0,0,0.05);font-size:calc(' + typeScale + ' * 12px);">' + appt.client + '</span>';
+    if (appt.visits > 0) {
+      html += '<span class="text-[9px] font-medium flex-shrink-0 px-1.5 py-0.5 rounded-full" style="background:rgba(0,0,0,0.05);">' + appt.visits + ' visits</span>';
+    } else {
+      html += '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700">NEW</span>';
+    }
+    html += '</div>';
+
+    // Row 2: Pet name (gendered) + candle + breed
+    if (height > 50) {
+      var cid = 'candle_' + idx;
+      var ageStr = '' + appt.age;
+      var svgW = ageStr.length === 1 ? 14 : 22;
+      var cx = svgW / 2;
+      var svgH = 26;
+      var numY = 21;
+      var fontSize = ageStr.length === 1 ? 15 : 12;
+      var numTop = numY - (ageStr.length === 1 ? 12 : 10);
+      var flameBase = numTop;
+      var flameH = 7;
+      var flameTop = flameBase - flameH;
+
+      html += '<div class="flex items-center gap-1 mt-0.5 relative" style="z-index:2;">';
+      html += '<div class="flex-1 min-w-0">';
+      html += '<div class="flex items-center gap-1">';
+      html += '<span class="font-semibold truncate inline-block px-1.5 py-0.5 rounded-md" style="font-size:calc(' + typeScale + ' * 12px);color:' + nameColor + ';background:' + nameBg + ';">' + appt.pet + '</span>';
+
+      // Candle SVG
+      html += '<svg width="' + svgW + '" height="' + svgH + '" viewBox="0 0 ' + svgW + ' ' + svgH + '" style="overflow:visible;flex-shrink:0;">'
+        + '<defs>'
+        + '<linearGradient id="fo_' + cid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FCD34D"/><stop offset="35%" stop-color="#FB923C"/><stop offset="100%" stop-color="#EF4444"/></linearGradient>'
+        + '<linearGradient id="fi_' + cid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FEF9C3"/><stop offset="50%" stop-color="#FDE047"/><stop offset="100%" stop-color="#FBBF24"/></linearGradient>'
+        + '</defs>'
+        + '<path d="M' + cx + ' ' + flameTop + ' C' + (cx-0.3) + ' ' + flameTop + ', ' + (cx+3.2) + ' ' + (flameTop+3) + ', ' + (cx+2.8) + ' ' + (flameBase-1.5) + ' C' + (cx+2.5) + ' ' + flameBase + ' ' + (cx+1.2) + ' ' + (flameBase+0.8) + ' ' + cx + ' ' + (flameBase+0.8) + ' C' + (cx-1.2) + ' ' + (flameBase+0.8) + ' ' + (cx-2.5) + ' ' + flameBase + ' ' + (cx-2.8) + ' ' + (flameBase-1.5) + ' C' + (cx-3.2) + ' ' + (flameTop+3) + ' ' + (cx+0.3) + ' ' + flameTop + ' ' + cx + ' ' + flameTop + 'Z" fill="url(#fo_' + cid + ')"/>'
+        + '<path d="M' + cx + ' ' + (flameTop+2) + ' C' + cx + ' ' + (flameTop+2) + ', ' + (cx+1.8) + ' ' + (flameTop+4) + ', ' + (cx+1.6) + ' ' + (flameBase-1) + ' C' + (cx+1.4) + ' ' + flameBase + ' ' + (cx+0.7) + ' ' + (flameBase+0.3) + ' ' + cx + ' ' + (flameBase+0.3) + ' C' + (cx-0.7) + ' ' + (flameBase+0.3) + ' ' + (cx-1.4) + ' ' + flameBase + ' ' + (cx-1.6) + ' ' + (flameBase-1) + ' C' + (cx-1.8) + ' ' + (flameTop+4) + ' ' + cx + ' ' + (flameTop+2) + ' ' + cx + ' ' + (flameTop+2) + 'Z" fill="url(#fi_' + cid + ')"/>'
+        + '<ellipse cx="' + cx + '" cy="' + (flameBase-1.5) + '" rx="0.5" ry="0.7" fill="white" opacity="0.6"/>'
+        + '<text x="' + cx + '" y="' + ((numTop + svgH + 2) / 2) + '" text-anchor="middle" dominant-baseline="central" font-size="' + fontSize + '" font-weight="900" font-family="-apple-system,BlinkMacSystemFont,sans-serif" fill="' + candleBody + '" stroke="' + candleDark + '" stroke-width="0.5" paint-order="stroke">' + ageStr + '</text>'
+        + '</svg>';
+
+      html += '</div>'; // flex row
+      html += '<span class="text-[10px] text-gray-400 truncate block">' + appt.breed + '</span>';
+      html += '</div></div>';
+    }
+
+    // Row 3: Tags
+    if (height > 80 && appt.tags.length > 0) {
+      html += '<div class="flex flex-wrap gap-0.5 mt-1 relative" style="z-index:2;max-height:26px;overflow:hidden;">';
+      appt.tags.forEach(function(tag) {
+        html += '<span class="text-[8px] font-medium px-1.5 py-0.5 rounded-full" style="background:#E8E0EC;color:#5E4B66;">' + tag + '</span>';
+      });
+      html += '</div>';
+    }
+
+    // Row 4: Rating + status
+    if (height > 110) {
+      html += '<div class="flex items-center gap-1.5 mt-1 relative" style="z-index:2;">';
+      if (appt.rating) {
+        html += '<div class="w-6 h-6 rounded-full flex items-center justify-center" style="background:#FCE7F3;border:1px solid #FBCFE8;">';
+        html += '<span class="text-[11px] font-bold" style="color:#BE185D;">' + appt.rating + '</span></div>';
+      }
+      html += '<span class="text-[9px] font-medium px-2 py-0.5 rounded-full" style="background:' + sb.bg + ';color:' + sb.text + ';">' + sb.label + '</span>';
+      html += '</div>';
+    }
+
+    html += '</div>'; // end card
+  });
+
+  html += '</div>'; // end grid
+  document.getElementById('dayColumn').innerHTML = html;
+}
+
+// ===== INIT =====
+buildControls();
+renderCalendar();
+loadFromURL();
+</script>
+
+</body>
+</html>
