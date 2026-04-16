@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Erin's Training Handbook — GroomOS Design</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  * { box-sizing: border-box; }
+
+  /* Glassmorphism base */
+  .glass {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.6);
+    /* One-sun rule: highlight top-left, shadow bottom-right */
+    box-shadow:
+      inset 1px 1px 0 rgba(255,255,255,0.7),
+      0 8px 32px rgba(139,120,147,0.10),
+      0 2px 8px rgba(0,0,0,0.04);
+  }
+  .glass-strong {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow:
+      inset 1px 1px 0 rgba(255,255,255,0.8),
+      0 12px 40px rgba(139,120,147,0.12),
+      0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  /* Gradient background matching GroomOS aesthetic */
+  .groom-bg {
+    background:
+      radial-gradient(ellipse at 15% 20%, rgba(200,180,220,0.35) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 60%, rgba(180,160,210,0.2) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 90%, rgba(220,200,240,0.15) 0%, transparent 40%),
+      linear-gradient(135deg, #f8f6fc 0%, #efe8f4 40%, #e8e0f0 100%);
+  }
+
+  /* Nav sidebar */
+  .nav-link {
+    display: block; padding: 10px 16px; border-radius: 10px;
+    color: #5a4a6a; text-decoration: none; font-size: 14px;
+    transition: all .15s ease;
+  }
+  .nav-link:hover { background: rgba(139,120,147,0.12); color: #3d2e4d; }
+  .nav-link.active { background: rgba(139,120,147,0.18); color: #3d2e4d; font-weight: 600; }
+  .nav-link .nav-emoji { margin-right: 8px; font-size: 16px; }
+
+  /* Section cards */
+  .section-card {
+    scroll-margin-top: 32px;
+    opacity: 0; transform: translateY(12px);
+    animation: fadeUp .4s ease forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tool cards (linkable interactive tools) */
+  .tool-card {
+    border-radius: 16px; padding: 24px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(139,120,147,0.15);
+    box-shadow: 0 4px 16px rgba(139,120,147,0.08);
+    transition: all .2s ease;
+    cursor: pointer; text-decoration: none; display: block; color: inherit;
+  }
+  .tool-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(139,120,147,0.15);
+    border-color: rgba(139,120,147,0.3);
+  }
+
+  /* Interactive demo areas */
+  .demo-area {
+    border-radius: 16px;
+    background: rgba(255,255,255,0.45);
+    border: 1px dashed rgba(139,120,147,0.25);
+    padding: 24px;
+    position: relative;
+  }
+
+  /* Colour swatch */
+  .swatch {
+    width: 64px; height: 64px; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform .15s ease;
+    cursor: pointer; position: relative;
+  }
+  .swatch:hover { transform: scale(1.08); }
+  .swatch-label { font-size: 11px; color: #6b5a7a; margin-top: 6px; text-align: center; }
+  .swatch-hex { font-size: 10px; color: #9a8aa8; font-family: monospace; text-align: center; }
+
+  /* One-sun demo */
+  .sun-demo-card {
+    width: 120px; height: 80px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; color: #5a4a6a;
+    transition: all .4s ease;
+  }
+
+  /* Tooltip for copied feedback */
+  .copy-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #3d2e4d; color: white; padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; opacity: 0; transition: all .25s ease; pointer-events: none; z-index: 500;
+  }
+  .copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Badge */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-interactive { background: rgba(139,120,147,0.15); color: #6b5a7a; }
+  .badge-reference { background: rgba(100,160,140,0.15); color: #4a7a6a; }
+  .badge-external { background: rgba(160,140,100,0.15); color: #7a6a4a; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .handbook-layout { flex-direction: column !important; }
+    .handbook-nav { position: static !important; width: 100% !important; }
+    .handbook-main { padding-left: 0 !important; }
+  }
+
+  /* Tool overlay */
+  .tool-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tool-overlay.active { opacity: 1; pointer-events: all; }
+  .tool-overlay-inner {
+    width: 92vw; height: 90vh; max-width: 1200px;
+    border-radius: 20px; overflow: hidden;
+    background: white;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+    position: relative;
+    transform: scale(0.95); transition: transform .25s ease;
+  }
+  .tool-overlay.active .tool-overlay-inner { transform: scale(1); }
+  .tool-overlay-close {
+    position: absolute; top: 12px; right: 16px; z-index: 210;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(0,0,0,0.6); color: white; border: none;
+    font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .tool-overlay-close:hover { background: rgba(0,0,0,0.8); }
+  .tool-page { /* embedded tool pages inside the overlay */ }
+
+  /* Print friendly */
+  @media print {
+    .handbook-nav { display: none; }
+    .glass, .glass-strong { background: white; backdrop-filter: none; }
+  }
+</style>
+</head>
+
+<body class="groom-bg min-h-screen">
+
+<!-- Copy toast -->
+<div id="copyToast" class="copy-toast">Copied!</div>
+
+<!-- Tool overlay (pops up when you click "Open Tool") -->
+<div id="toolOverlay" class="tool-overlay" onclick="closeToolOverlay(event)">
+  <div class="tool-overlay-inner">
+    <button type="button" class="tool-overlay-close" onclick="closeToolOverlay()" title="Close">✕</button>
+    <div id="toolContent" style="width:100%;height:100%;overflow-y:auto;padding:32px 36px;background:linear-gradient(135deg,#f8f6fc 0%,#efe8f4 40%,#e8e0f0 100%);">
+
+      <!-- ========== UI PATTERNS TOOL (hidden until opened) ========== -->
+      <div id="tool-ui-patterns" class="tool-page" style="display:none;">
+
+        <!-- Overlay panels for the demos -->
+        <div id="epBackdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(4px);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s ease;" onclick="epCloseAll()"></div>
+
+        <div id="epModal" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.95);z-index:310;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;">
+          <div style="width:min(440px,85vw);background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);border-radius:20px;padding:28px 32px;border:1px solid rgba(255,255,255,0.7);box-shadow:0 24px 60px rgba(139,120,147,0.2);">
+            <h3 style="margin:0 0 8px;font-size:18px;color:#3d2e4d;">This is a Modal</h3>
+            <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 16px;">Think of it like an <strong>Instagram popup</strong> when you tap a photo — everything behind goes dark, and you have to close this before you can do anything else.</p>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 20px;">Modals are used for important decisions ("Are you sure you want to delete this?") or focused tasks like editing a pet's details.</p>
+            <button type="button" onclick="epCloseAll()" style="padding:10px 24px;border-radius:10px;background:#8B7893;color:white;border:none;font-size:14px;font-weight:600;cursor:pointer;">Got it, close this</button>
+          </div>
+        </div>
+
+        <div id="epSlidein" style="position:fixed;top:0;right:0;bottom:0;width:min(420px,85vw);z-index:310;transform:translateX(100%);transition:transform .3s ease;pointer-events:none;">
+          <div style="height:100%;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);padding:32px 28px;border-left:1px solid rgba(255,255,255,0.7);box-shadow:-8px 0 40px rgba(139,120,147,0.15);overflow-y:auto;">
+            <h3 style="margin:0 0 8px;font-size:18px;color:#3d2e4d;">This is a Slide-in Panel</h3>
+            <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 16px;">Imagine <strong>swiping from the right on your iPhone</strong> to go back — except this slides <em>in</em> to show you more detail.</p>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 12px;">Used when you want to edit or view details without fully leaving the page — like clicking a client's name on the calendar to see their info.</p>
+            <div style="background:rgba(139,120,147,0.08);border-radius:10px;padding:14px;margin:16px 0;">
+              <div style="font-weight:600;color:#3d2e4d;font-size:13px;margin-bottom:6px;">Example fields:</div>
+              <div style="color:#6b5a7a;font-size:13px;line-height:2;">Client name: <span style="background:rgba(139,120,147,0.1);padding:2px 10px;border-radius:6px;">Fluffy McWhiskers</span><br>Breed: <span style="background:rgba(139,120,147,0.1);padding:2px 10px;border-radius:6px;">Persian</span><br>Last visit: <span style="background:rgba(139,120,147,0.1);padding:2px 10px;border-radius:6px;">2 weeks ago</span></div>
+            </div>
+            <button type="button" onclick="epCloseAll()" style="padding:10px 24px;border-radius:10px;background:#8B7893;color:white;border:none;font-size:14px;font-weight:600;cursor:pointer;">Close panel</button>
+          </div>
+        </div>
+
+        <div id="epDrawer" style="position:fixed;left:0;right:0;bottom:0;z-index:310;transform:translateY(100%);transition:transform .3s ease;pointer-events:none;">
+          <div style="background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border-radius:20px 20px 0 0;padding:24px 28px 32px;border-top:1px solid rgba(255,255,255,0.7);box-shadow:0 -8px 40px rgba(139,120,147,0.15);max-height:60vh;overflow-y:auto;">
+            <div style="width:40px;height:4px;background:rgba(139,120,147,0.3);border-radius:2px;margin:0 auto 16px;"></div>
+            <h3 style="margin:0 0 8px;font-size:18px;color:#3d2e4d;">This is a Drawer</h3>
+            <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 16px;">Like pulling up the <strong>control centre on an iPhone</strong> — it slides up from the bottom. That little grey bar at the top is the "handle."</p>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 20px;">Drawers work great on mobile because your thumb is already at the bottom of the screen.</p>
+            <button type="button" onclick="epCloseAll()" style="padding:10px 24px;border-radius:10px;background:#8B7893;color:white;border:none;font-size:14px;font-weight:600;cursor:pointer;">Slide this back down</button>
+          </div>
+        </div>
+
+        <div id="epToast" style="position:fixed;bottom:24px;right:24px;z-index:400;transform:translateY(20px);opacity:0;transition:all .3s ease;pointer-events:none;">
+          <div style="background:rgba(255,255,255,0.88);backdrop-filter:blur(16px);padding:14px 22px;border-radius:14px;border:1px solid rgba(139,120,147,0.2);box-shadow:0 8px 32px rgba(139,120,147,0.15);display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">✅</span>
+            <div><div style="font-weight:600;color:#3d2e4d;font-size:14px;">Saved!</div><div style="color:#6b5a7a;font-size:12px;">Pet details updated successfully</div></div>
+          </div>
+        </div>
+
+        <h2 style="font-size:22px;font-weight:700;color:#3d2e4d;margin:0 0 6px;">UI Patterns — Interactive Guide</h2>
+        <p style="color:#6b5a7a;font-size:15px;margin-bottom:24px;">Click each button to see the pattern in action.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-bottom:24px;">
+          <div style="background:rgba(139,120,147,0.06);border-radius:16px;padding:20px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">📱</div><div style="font-weight:600;color:#3d2e4d;margin-bottom:4px;">Modal</div>
+            <div style="color:#6b5a7a;font-size:12px;margin-bottom:14px;">Pops up in the centre, blocks everything else</div>
+            <button type="button" style="padding:10px 22px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#8B7893;color:white;" onclick="epShowModal()">Try it</button>
+          </div>
+          <div style="background:rgba(139,120,147,0.06);border-radius:16px;padding:20px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">➡️</div><div style="font-weight:600;color:#3d2e4d;margin-bottom:4px;">Slide-in Panel</div>
+            <div style="color:#6b5a7a;font-size:12px;margin-bottom:14px;">Slides in from the right side</div>
+            <button type="button" style="padding:10px 22px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#8B7893;color:white;" onclick="epShowSlidein()">Try it</button>
+          </div>
+          <div style="background:rgba(139,120,147,0.06);border-radius:16px;padding:20px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">⬆️</div><div style="font-weight:600;color:#3d2e4d;margin-bottom:4px;">Drawer</div>
+            <div style="color:#6b5a7a;font-size:12px;margin-bottom:14px;">Slides up from the bottom</div>
+            <button type="button" style="padding:10px 22px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#8B7893;color:white;" onclick="epShowDrawer()">Try it</button>
+          </div>
+          <div style="background:rgba(139,120,147,0.06);border-radius:16px;padding:20px;text-align:center;position:relative;">
+            <div style="font-size:28px;margin-bottom:8px;">💬</div><div style="font-weight:600;color:#3d2e4d;margin-bottom:4px;">Tooltip</div>
+            <div style="color:#6b5a7a;font-size:12px;margin-bottom:14px;">Tiny hint on hover</div>
+            <span style="position:relative;display:inline-block;">
+              <button type="button" style="padding:10px 22px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#8B7893;color:white;" onmouseenter="document.getElementById('epTooltipBox').style.opacity='1'" onmouseleave="document.getElementById('epTooltipBox').style.opacity='0'">Hover me</button>
+              <div id="epTooltipBox" style="position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;">
+                <div style="background:rgba(61,46,77,0.92);color:white;padding:8px 14px;border-radius:8px;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">This is a tooltip! Just a little hint.</div>
+              </div>
+            </span>
+          </div>
+          <div style="background:rgba(139,120,147,0.06);border-radius:16px;padding:20px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">🔔</div><div style="font-weight:600;color:#3d2e4d;margin-bottom:4px;">Toast</div>
+            <div style="color:#6b5a7a;font-size:12px;margin-bottom:14px;">Quick notification, disappears on its own</div>
+            <button type="button" style="padding:10px 22px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#8B7893;color:white;" onclick="epShowToast()">Try it</button>
+          </div>
+        </div>
+        <div style="background:rgba(139,120,147,0.08);border-radius:14px;padding:18px 22px;">
+          <h3 style="margin:0 0 10px;font-size:15px;color:#3d2e4d;">Cheat Sheet</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr style="border-bottom:1px solid rgba(139,120,147,0.15);"><td style="padding:8px 6px;font-weight:600;color:#3d2e4d;">Modal</td><td style="padding:8px 6px;color:#6b5a7a;">Centre of screen</td><td style="padding:8px 6px;color:#6b5a7a;">Confirmations, focused forms</td></tr>
+            <tr style="border-bottom:1px solid rgba(139,120,147,0.15);"><td style="padding:8px 6px;font-weight:600;color:#3d2e4d;">Slide-in</td><td style="padding:8px 6px;color:#6b5a7a;">From the right</td><td style="padding:8px 6px;color:#6b5a7a;">Detail views, editing panels</td></tr>
+            <tr style="border-bottom:1px solid rgba(139,120,147,0.15);"><td style="padding:8px 6px;font-weight:600;color:#3d2e4d;">Drawer</td><td style="padding:8px 6px;color:#6b5a7a;">From the bottom</td><td style="padding:8px 6px;color:#6b5a7a;">Mobile-friendly menus</td></tr>
+            <tr style="border-bottom:1px solid rgba(139,120,147,0.15);"><td style="padding:8px 6px;font-weight:600;color:#3d2e4d;">Tooltip</td><td style="padding:8px 6px;color:#6b5a7a;">Near the element</td><td style="padding:8px 6px;color:#6b5a7a;">Quick hints, icon labels</td></tr>
+            <tr><td style="padding:8px 6px;font-weight:600;color:#3d2e4d;">Toast</td><td style="padding:8px 6px;color:#6b5a7a;">Corner of screen</td><td style="padding:8px 6px;color:#6b5a7a;">Success/error notifications</td></tr>
+          </table>
+        </div>
+      </div>
+      <!-- END UI PATTERNS -->
+
+      <!-- ========== BUTTON ZOO TOOL (hidden until opened) ========== -->
+      <div id="tool-button-zoo" class="tool-page" style="display:none;">
+        <h2 style="font-size:22px;font-weight:700;color:#3d2e4d;margin:0 0 6px;">Button Zoo — What's Currently in GroomOS</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:24px;">Every button style found in the codebase, named and organised. 251 buttons across 30+ files, 12 distinct treatments, 0 shared components (yet!).</p>
+
+        <h3 style="font-size:16px;font-weight:600;color:#3d2e4d;margin:20px 0 12px;">Primary CTAs (the "do it" buttons)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#111827;color:white;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">Save Changes</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">primary-solid-dark</div><div style="color:#9a8aa8;font-size:10px;">bg-gray-900</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#7c3aed;color:white;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">Add Service</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">primary-solid-violet</div><div style="color:#9a8aa8;font-size:10px;">bg-violet-600</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#2563eb;color:white;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">New Booking</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">primary-solid-blue</div><div style="color:#9a8aa8;font-size:10px;">bg-blue-600</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#8B7893;color:white;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">Confirm</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">primary-solid-lilac</div><div style="color:#9a8aa8;font-size:10px;">bg-[#8B7893]</div>
+          </div>
+        </div>
+
+        <h3 style="font-size:16px;font-weight:600;color:#3d2e4d;margin:20px 0 12px;">Danger / Destructive</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#ef4444;color:white;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">Delete</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">danger-solid-coral</div><div style="color:#9a8aa8;font-size:10px;">bg-red-500</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:transparent;color:#ef4444;padding:10px 24px;border-radius:8px;border:1px solid #fecaca;font-size:14px;font-weight:500;">Remove</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">danger-outline-coral</div><div style="color:#9a8aa8;font-size:10px;">text-red-500 border</div>
+          </div>
+        </div>
+
+        <h3 style="font-size:16px;font-weight:600;color:#3d2e4d;margin:20px 0 12px;">Secondaries</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:transparent;color:#374151;padding:10px 24px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;font-weight:500;">Cancel</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">secondary-outline-slate</div><div style="color:#9a8aa8;font-size:10px;">border-gray-300</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:#f3f4f6;color:#374151;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;">Back</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">secondary-solid-slate</div><div style="color:#9a8aa8;font-size:10px;">bg-gray-100</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:160px;">
+            <button type="button" style="background:transparent;color:#6b7280;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:500;text-decoration:underline;">Skip for now</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">secondary-ghost-slate</div><div style="color:#9a8aa8;font-size:10px;">text link style</div>
+          </div>
+        </div>
+
+        <h3 style="font-size:16px;font-weight:600;color:#3d2e4d;margin:20px 0 12px;">Utilities (small, icon-like)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:120px;">
+            <button type="button" style="background:transparent;color:#6b7280;padding:8px;border-radius:8px;border:none;font-size:18px;">✕</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">utility-ghost-close</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:120px;">
+            <button type="button" style="background:#f3f4f6;color:#6b7280;padding:8px 12px;border-radius:8px;border:none;font-size:14px;">⚙️</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">utility-solid-icon</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:16px 20px;text-align:center;min-width:120px;">
+            <button type="button" style="background:transparent;color:#8B7893;padding:8px 12px;border-radius:8px;border:none;font-size:14px;text-decoration:underline;">+ Add</button>
+            <div style="color:#5a4a6a;font-size:11px;margin-top:8px;font-weight:600;">utility-ghost-add</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(139,120,147,0.08);border-radius:14px;padding:18px 22px;">
+          <h3 style="margin:0 0 8px;font-size:15px;color:#3d2e4d;">What this tells us</h3>
+          <p style="color:#6b5a7a;font-size:13px;line-height:1.6;margin:0;">There are <strong>4 different primary colours</strong> being used for main buttons (dark, violet, blue, lilac), <strong>mixed border-radius values</strong>, and <strong>no shared button component</strong>. Future design sessions will pick one canonical style for each role and roll it out everywhere.</p>
+        </div>
+      </div>
+      <!-- END BUTTON ZOO -->
+
+      <!-- ========== DESIGN PHILOSOPHY TOOL (hidden until opened) ========== -->
+      <div id="tool-design-philosophy" class="tool-page" style="display:none;">
+        <h2 style="font-size:22px;font-weight:700;color:#3d2e4d;margin:0 0 6px;">The Soul of GroomOS</h2>
+        <p style="color:#6b5a7a;font-size:15px;margin-bottom:28px;">This is the design philosophy Paul wrote for the project. It's the "why" behind every decision. Think of it as the rulebook for what GroomOS should <em>feel</em> like.</p>
+
+        <!-- The Big Question -->
+        <div style="background:linear-gradient(135deg,rgba(139,120,147,0.15),rgba(168,144,184,0.1));border-radius:16px;padding:24px;margin-bottom:20px;border-left:4px solid #8B7893;">
+          <div style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#8B7893;font-weight:600;margin-bottom:8px;">The Guiding Question</div>
+          <div style="font-size:17px;color:#3d2e4d;font-style:italic;line-height:1.6;">"How do we build software that serves the groomer — not the other way around?"</div>
+          <p style="color:#6b5a7a;font-size:13px;margin:12px 0 0;line-height:1.5;">Every design choice, every screen, every button traces back to this. The groomer's day is physical and exhausting. The software should feel like relief — like stepping into a cool room after being outside all day.</p>
+        </div>
+
+        <!-- Rick Rubin Principle -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">🎵 The Rick Rubin Principle</h3>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">Rick Rubin is a famous music producer. His philosophy is: <strong>don't mess with the artist's raw material.</strong> Just help it shine.</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">In GroomOS, the "artist" is the groomer. When a groomer finishes a session, they might type something like:</p>
+          <div style="background:rgba(139,120,147,0.08);border-radius:10px;padding:16px;margin:12px 0;font-style:italic;color:#5a4a6a;font-size:14px;line-height:1.7;">
+            "Great session, I love him! FCG + Belly + paws + compacted coat brush out. $220. Mum is getting MARRIED this weekend! Recommended to see again in 4 months, around mid July."
+          </div>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">That one paragraph contains <strong>five different types of information</strong> — pet feelings, services done, pricing, client personal news, and scheduling advice. A traditional app would force the groomer to type that into five separate boxes.</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0;"><strong>GroomOS doesn't do that.</strong> The groomer types naturally. The AI reads it behind the scenes and quietly files everything into the right categories. The groomer's words stay exactly as written — forever. The software does the organising.</p>
+        </div>
+
+        <!-- The Narrative Principle -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">📖 The Narrative Principle</h3>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">Individual facts are useful. But the <strong>story</strong> is what matters.</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">A cat that's been groomed 12 times builds a history. Maybe the first few visits they were nervous and needed breaks. By visit 6, much calmer. By visit 10, a total angel who purrs through the whole session. That's a <em>narrative arc</em> — and it tells the groomer everything they need to know.</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0;">A great groomer carries all this in their head — but with 200+ clients, memory fails. <strong>The AI doesn't forget.</strong> It's a relationship memory, not a chatbot.</p>
+        </div>
+
+        <!-- Visual Design Rules -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">🎨 How GroomOS Should Look</h3>
+          <p style="color:#6b5a7a;font-size:13px;margin:0 0 16px;">These are the visual rules. Every screen, every component follows these.</p>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🔵</div>
+              <div><strong style="color:#3d2e4d;">All corners are rounded.</strong> <span style="color:#6b5a7a;font-size:13px;">Always. Apple design philosophy — soft, inviting, never sharp. This is why everything in GroomOS has rounded edges.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🪟</div>
+              <div><strong style="color:#3d2e4d;">Glassmorphism.</strong> <span style="color:#6b5a7a;font-size:13px;">Frosted glass effects — things look like they're made of semi-transparent glass floating above the page. Blur, depth, translucent layers. The signature GroomOS aesthetic.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">☀️</div>
+              <div><strong style="color:#3d2e4d;">One sun per page.</strong> <span style="color:#6b5a7a;font-size:13px;">Every element is lit by the same imaginary light source (top-left by default). Highlights, shadows, glass reflections — all consistent. If one card is lit from the left and another from the right, it looks wrong even if you can't say why.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🫧</div>
+              <div><strong style="color:#3d2e4d;">Pop-ups float.</strong> <span style="color:#6b5a7a;font-size:13px;">Modals, slide-ins, drawers — they should look like they're hovering above the surface. A gentle shadow, breathing room. Never cramped.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🚪</div>
+              <div><strong style="color:#3d2e4d;">Every overlay has a way back.</strong> <span style="color:#6b5a7a;font-size:13px;">No dead ends. Every popup, drawer, or panel has a close button, a cancel option, or a way to go back. The user should never feel trapped.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🧅</div>
+              <div><strong style="color:#3d2e4d;">Progressive disclosure.</strong> <span style="color:#6b5a7a;font-size:13px;">Show what matters first. Details on demand. Don't overwhelm people with everything at once — like peeling layers of an onion. The most important info is visible immediately; dig deeper if you need to.</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="min-width:32px;height:32px;border-radius:8px;background:rgba(139,120,147,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📎</div>
+              <div><strong style="color:#3d2e4d;">The AI is like a discrete Clippy.</strong> <span style="color:#6b5a7a;font-size:13px;">Remember Clippy from old Microsoft Word? Like that, but actually good. Floating on screen, present but not obnoxious. It draws attention through subtle movement, not shouting.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRIP Themes -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">🎨 DRIP — Custom Themes</h3>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;">DRIP is the theming system. It lets users customise the look of their GroomOS — colours, patterns, personality. Think of it like changing the wallpaper on your phone, but way more detailed.</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0 0 12px;"><strong>What's built so far:</strong> colour palette editor for booking tickets, day column colours, day-off pattern selector, global accent colour, and three preset themes (Classic, Midnight, Cherry Blossom).</p>
+          <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0;"><strong>The big dream — "Wraps":</strong> full visual themes that completely transform the interface. Paul has two wild ideas: a <em>mid-century modern</em> wrap with retro typography, and a <em>"Cat is the customer"</em> wrap where everything on screen plays into the fantasy that YOU are a cat booking a groom. Buttons might wiggle (cats love movement), design circles could become cat food bowls, and sometimes another cat walks across the background.</p>
+        </div>
+
+        <!-- Miso & Via -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:24px;margin-bottom:16px;">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">🐱 The AI Characters</h3>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <div style="font-weight:600;color:#3d2e4d;font-size:15px;margin-bottom:4px;">Miso — the internal brain</div>
+              <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0;">Miso is the mascot cat you've already met (on your handbook icon!). In the software, Miso is the AI engine that reads grooming notes, builds pet histories, predicts how long sessions will take, and generally makes the groomer's life easier. Miso works behind the scenes — quiet, smart, always learning.</p>
+            </div>
+            <div>
+              <div style="font-weight:600;color:#3d2e4d;font-size:15px;margin-bottom:4px;">Via — the digital receptionist</div>
+              <p style="color:#5a4a6a;font-size:14px;line-height:1.6;margin:0;">Via is the client-facing AI that handles booking requests. She chats with pet owners, follows Paul's booking rules, and handles 80%+ of scheduling automatically. Helpful, clear, professional but warm. She and Miso share the same brain but have different audiences.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Brand Feeling -->
+        <div style="background:linear-gradient(135deg,rgba(139,120,147,0.12),rgba(168,144,184,0.08));border-radius:16px;padding:24px;border:1px solid rgba(139,120,147,0.15);">
+          <h3 style="margin:0 0 10px;font-size:17px;color:#3d2e4d;">💜 The Brand Feeling</h3>
+          <div style="font-style:italic;color:#5a4a6a;font-size:15px;line-height:1.7;margin-bottom:12px;">
+            "You manage pets' energy all day.<br>
+            Let us help you with yours.<br><br>
+            Intuitive landscape. Everything just... works.<br>
+            It's the crème de la crème of UI — and it's beautiful."
+          </div>
+          <p style="color:#6b5a7a;font-size:13px;margin:0;line-height:1.5;">
+            That's Paul's brand-voice seed. The tension between the groomer's physical, exhausting work and the calm, effortless digital experience. The glass aesthetic, the soft depth, the quiet intelligence — it all serves this feeling of relief.
+          </p>
+        </div>
+      </div>
+      <!-- END DESIGN PHILOSOPHY -->
+
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="max-w-6xl mx-auto px-6 pt-8 pb-4">
+  <div class="glass-strong" style="border-radius:20px; padding:32px 36px;">
+    <div class="flex items-center gap-3 mb-2">
+      <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#8B7893,#a890b8);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700;">G</div>
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#8B7893;font-weight:600;">GroomOS Design</div>
+        <h1 style="font-size:26px;font-weight:700;color:#3d2e4d;margin:0;line-height:1.2;">Erin's Training Handbook</h1>
+      </div>
+    </div>
+    <p style="color:#6b5a7a;font-size:15px;margin-top:12px;max-width:600px;line-height:1.6;">
+      Your home base for learning GroomOS design. Browse the sections below, play with the interactive demos, and open the standalone tools whenever you need a deeper dive. This handbook grows as we build more tools together.
+    </p>
+  </div>
+</header>
+
+<!-- Main layout -->
+<div class="max-w-6xl mx-auto px-6 pb-16 handbook-layout" style="display:flex;gap:24px;">
+
+  <!-- Sidebar nav -->
+  <nav class="handbook-nav" style="width:220px;flex-shrink:0;position:sticky;top:24px;align-self:flex-start;">
+    <div class="glass" style="border-radius:16px;padding:16px 12px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8B7893;font-weight:600;padding:0 16px 10px;">Contents</div>
+      <div class="nav-link active" onclick="scrollToSection('welcome', this)" style="cursor:pointer;"><span class="nav-emoji">👋</span>Welcome</div>
+      <div class="nav-link" onclick="scrollToSection('toolkit', this)" style="cursor:pointer;"><span class="nav-emoji">🧰</span>Your Toolkit</div>
+      <div class="nav-link" onclick="scrollToSection('colours', this)" style="cursor:pointer;"><span class="nav-emoji">🎨</span>Colours</div>
+      <div class="nav-link" onclick="scrollToSection('glass', this)" style="cursor:pointer;"><span class="nav-emoji">✨</span>Glassmorphism</div>
+      <div class="nav-link" onclick="scrollToSection('one-sun', this)" style="cursor:pointer;"><span class="nav-emoji">☀️</span>One Sun Rule</div>
+      <div class="nav-link" onclick="scrollToSection('naming', this)" style="cursor:pointer;"><span class="nav-emoji">🏷️</span>Naming Things</div>
+      <div class="nav-link" onclick="scrollToSection('glossary', this)" style="cursor:pointer;"><span class="nav-emoji">📖</span>Glossary</div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="handbook-main" style="flex:1;min-width:0;">
+    <div style="display:flex;flex-direction:column;gap:24px;">
+
+      <!-- ============ WELCOME ============ -->
+      <section id="welcome" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 16px;">Welcome!</h2>
+        <p style="color:#5a4a6a;line-height:1.7;margin-bottom:16px;">
+          <strong>GroomOS</strong> is a booking and management app being built for pet groomers in Australia. Paul (your boss!) is designing it from scratch — and you're helping shape how it looks and feels.
+        </p>
+        <p style="color:#5a4a6a;line-height:1.7;margin-bottom:16px;">
+          This handbook is your cheat sheet. It covers the visual language we're building (colours, glass effects, how things are named) and links out to interactive tools you can play with to learn the concepts hands-on.
+        </p>
+        <div style="background:rgba(139,120,147,0.08);border-radius:12px;padding:16px 20px;border-left:3px solid #8B7893;">
+          <p style="color:#5a4a6a;font-size:14px;margin:0;line-height:1.6;">
+            <strong>How to use this:</strong> Scroll through the sections, click the interactive bits, and bookmark this page. When we build new tools in future sessions, they'll get added here. You can also ask Claude: <em>"Can you show me the interactive tool for [topic]?"</em> and it'll know what you mean.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ YOUR TOOLKIT ============ -->
+      <section id="toolkit" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">Your Toolkit</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">Interactive tools you can open anytime. These are standalone pages — right-click and "Open in new tab" or just click to jump in.</p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+
+          <!-- UI Patterns tool -->
+          <div class="tool-card" style="cursor:default;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8B7893,#a890b8);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;">🎭</div>
+              <div>
+                <div style="font-weight:600;color:#3d2e4d;font-size:15px;">UI Patterns Guide</div>
+                <span class="badge badge-interactive">Interactive</span>
+              </div>
+            </div>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 12px;">
+              Clickable demos of Modals, Slide-ins, Drawers, Tooltips and Toasts — with real-world analogies to help you remember which is which.
+            </p>
+            <button type="button" onclick="openToolOverlay('ui-patterns')" style="padding:8px 18px;border-radius:10px;background:#8B7893;color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;">Open Tool →</button>
+          </div>
+
+          <!-- Button Sandbox tool -->
+          <div class="tool-card" style="cursor:default;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6b7a8a,#8a9aaa);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;">🔘</div>
+              <div>
+                <div style="font-weight:600;color:#3d2e4d;font-size:15px;">Button Zoo</div>
+                <span class="badge badge-reference">Reference</span>
+              </div>
+            </div>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 12px;">
+              Every button style currently in GroomOS, laid out side-by-side with names and source info. Great for "which button do we use for X?"
+            </p>
+            <button type="button" onclick="openToolOverlay('button-zoo')" style="padding:8px 18px;border-radius:10px;background:#6b7a8a;color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;">Open Tool →</button>
+          </div>
+
+          <!-- Design Philosophy walk-through -->
+          <div class="tool-card" style="cursor:default;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#a890b8,#c8b0d8);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;">✨</div>
+              <div>
+                <div style="font-weight:600;color:#3d2e4d;font-size:15px;">Design Philosophy</div>
+                <span class="badge badge-reference">Reference</span>
+              </div>
+            </div>
+            <p style="color:#6b5a7a;font-size:13px;line-height:1.5;margin:0 0 12px;">
+              The soul of GroomOS — why it looks the way it does, what the AI does behind the scenes, and the creative vision Paul is building toward.
+            </p>
+            <button type="button" onclick="openToolOverlay('design-philosophy')" style="padding:8px 18px;border-radius:10px;background:#a890b8;color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;">Open Tool →</button>
+          </div>
+
+          <!-- Placeholder for future tools -->
+          <div class="tool-card" style="cursor:default;opacity:0.5;border-style:dashed;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,120,147,0.15);display:flex;align-items:center;justify-content:center;color:#8B7893;font-size:16px;">🔮</div>
+              <div>
+                <div style="font-weight:600;color:#6b5a7a;font-size:15px;">More coming soon...</div>
+                <span class="badge badge-external">Future</span>
+              </div>
+            </div>
+            <p style="color:#9a8aa8;font-size:13px;line-height:1.5;margin:0;">
+              As we design more parts of GroomOS together, new interactive tools will be added here. Typography, spacing, forms, cards — all fair game.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ COLOURS ============ -->
+      <section id="colours" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">The GroomOS Colour Palette</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">These are the main colours you'll see throughout the app. Click any swatch to copy its hex code.</p>
+
+        <div class="demo-area">
+          <h3 style="font-size:14px;font-weight:600;color:#5a4a6a;margin:0 0 16px;">Primary Palette</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:20px;">
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#8B7893;" onclick="copySwatch('#8B7893')" title="Click to copy"></div>
+              <div class="swatch-label">Lilac</div>
+              <div class="swatch-hex">#8B7893</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#3d2e4d;" onclick="copySwatch('#3d2e4d')" title="Click to copy"></div>
+              <div class="swatch-label">Deep Purple</div>
+              <div class="swatch-hex">#3d2e4d</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#5a4a6a;" onclick="copySwatch('#5a4a6a')" title="Click to copy"></div>
+              <div class="swatch-label">Muted Plum</div>
+              <div class="swatch-hex">#5a4a6a</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#a890b8;" onclick="copySwatch('#a890b8')" title="Click to copy"></div>
+              <div class="swatch-label">Soft Violet</div>
+              <div class="swatch-hex">#a890b8</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#f8f6fc;" onclick="copySwatch('#f8f6fc')" title="Click to copy"></div>
+              <div class="swatch-label">Ghost White</div>
+              <div class="swatch-hex">#f8f6fc</div>
+            </div>
+          </div>
+
+          <h3 style="font-size:14px;font-weight:600;color:#5a4a6a;margin:24px 0 16px;">Functional Colours</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:20px;">
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#111827;" onclick="copySwatch('#111827')" title="Click to copy"></div>
+              <div class="swatch-label">Gray 900</div>
+              <div class="swatch-hex">#111827</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#ef4444;" onclick="copySwatch('#ef4444')" title="Click to copy"></div>
+              <div class="swatch-label">Danger Red</div>
+              <div class="swatch-hex">#ef4444</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#22c55e;" onclick="copySwatch('#22c55e')" title="Click to copy"></div>
+              <div class="swatch-label">Success Green</div>
+              <div class="swatch-hex">#22c55e</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#f59e0b;" onclick="copySwatch('#f59e0b')" title="Click to copy"></div>
+              <div class="swatch-label">Warning Amber</div>
+              <div class="swatch-hex">#f59e0b</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="swatch" style="background:#3b82f6;" onclick="copySwatch('#3b82f6')" title="Click to copy"></div>
+              <div class="swatch-label">Info Blue</div>
+              <div class="swatch-hex">#3b82f6</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:rgba(139,120,147,0.08);border-radius:12px;padding:14px 18px;margin-top:16px;">
+          <p style="color:#5a4a6a;font-size:13px;margin:0;line-height:1.5;">
+            <strong>Tip:</strong> The lilac palette is GroomOS's signature. It shows up in buttons, glass panel glows, and accent elements. When in doubt, lilac is almost always the right accent colour.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ GLASSMORPHISM ============ -->
+      <section id="glass" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">Glassmorphism</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">GroomOS's signature look. Think frosted glass — like looking through a bathroom window. Elements feel like they're floating on translucent layers.</p>
+
+        <div class="demo-area">
+          <h3 style="font-size:14px;font-weight:600;color:#5a4a6a;margin:0 0 16px;">Play with it — drag the slider to change the blur</h3>
+
+          <!-- Glass demo background -->
+          <div style="position:relative;border-radius:14px;overflow:hidden;height:260px;background:linear-gradient(135deg,#dcc8e8 0%,#b8a0cc 30%,#c0d0e8 60%,#e0c8d8 100%);">
+            <!-- Decorative blobs behind the glass -->
+            <div style="position:absolute;width:120px;height:120px;border-radius:50%;background:#8B7893;top:20px;left:40px;opacity:0.6;"></div>
+            <div style="position:absolute;width:80px;height:80px;border-radius:50%;background:#a890b8;top:100px;right:60px;opacity:0.5;"></div>
+            <div style="position:absolute;width:100px;height:100px;border-radius:50%;background:#c8b0d8;bottom:20px;left:50%;opacity:0.4;"></div>
+
+            <!-- The glass card -->
+            <div id="glassDemo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:280px;padding:24px;border-radius:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 1px 1px 0 rgba(255,255,255,0.7),0 8px 32px rgba(139,120,147,0.15);text-align:center;">
+              <div style="font-weight:600;color:#3d2e4d;font-size:15px;margin-bottom:6px;">I'm a glass card</div>
+              <div id="blurLabel" style="color:#6b5a7a;font-size:13px;">Blur: 16px</div>
+            </div>
+          </div>
+
+          <!-- Blur slider -->
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+            <label style="color:#5a4a6a;font-size:13px;font-weight:500;">Less glass</label>
+            <input type="range" min="0" max="40" value="16" id="blurSlider" oninput="updateBlur(this.value)" style="flex:1;accent-color:#8B7893;">
+            <label style="color:#5a4a6a;font-size:13px;font-weight:500;">More glass</label>
+          </div>
+
+          <!-- Opacity slider -->
+          <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
+            <label style="color:#5a4a6a;font-size:13px;font-weight:500;">Transparent</label>
+            <input type="range" min="10" max="90" value="55" id="opacitySlider" oninput="updateOpacity(this.value)" style="flex:1;accent-color:#8B7893;">
+            <label style="color:#5a4a6a;font-size:13px;font-weight:500;">Opaque</label>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+          <div style="background:rgba(139,120,147,0.06);border-radius:12px;padding:14px 18px;">
+            <div style="font-weight:600;color:#3d2e4d;font-size:13px;margin-bottom:4px;">What makes it "glass"?</div>
+            <p style="color:#6b5a7a;font-size:12px;margin:0;line-height:1.5;">
+              Three ingredients: a semi-transparent background (you can see through it), a blur effect (so what's behind looks frosted), and a subtle border that catches the "light."
+            </p>
+          </div>
+          <div style="background:rgba(139,120,147,0.06);border-radius:12px;padding:14px 18px;">
+            <div style="font-weight:600;color:#3d2e4d;font-size:13px;margin-bottom:4px;">When do we use it?</div>
+            <p style="color:#6b5a7a;font-size:12px;margin:0;line-height:1.5;">
+              Panels, cards, navigation bars, modals — basically any surface that "floats" above the page. It creates a sense of depth without being heavy.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ONE SUN RULE ============ -->
+      <section id="one-sun" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">The "One Sun" Rule ☀️</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">This is one of Paul's golden rules. Every element on a page is lit by the same imaginary sun — usually up and to the left. No element gets its own special lighting.</p>
+
+        <div class="demo-area">
+          <h3 style="font-size:14px;font-weight:600;color:#5a4a6a;margin:0 0 16px;">See the difference — click to toggle</h3>
+
+          <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+            <!-- Correct: One sun -->
+            <div style="text-align:center;">
+              <div id="oneSunDemo" style="display:flex;gap:16px;padding:20px;border-radius:16px;background:rgba(255,255,255,0.3);cursor:pointer;" onclick="toggleSunDemo()">
+                <div class="sun-demo-card" style="background:rgba(255,255,255,0.55);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 1px 1px 0 rgba(255,255,255,0.7),0 4px 12px rgba(0,0,0,0.08);">Card A</div>
+                <div class="sun-demo-card" style="background:rgba(255,255,255,0.55);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 1px 1px 0 rgba(255,255,255,0.7),0 4px 12px rgba(0,0,0,0.08);">Card B</div>
+                <div class="sun-demo-card" style="background:rgba(255,255,255,0.55);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.6);box-shadow:inset 1px 1px 0 rgba(255,255,255,0.7),0 4px 12px rgba(0,0,0,0.08);">Card C</div>
+              </div>
+              <div id="sunLabel" style="margin-top:10px;font-size:13px;font-weight:600;color:#22c55e;">✓ One Sun — all cards lit from the same direction</div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;background:rgba(139,120,147,0.08);border-radius:10px;padding:12px 16px;">
+            <p style="color:#5a4a6a;font-size:13px;margin:0;line-height:1.5;" id="sunExplainer">
+              <strong>Right now:</strong> All three cards have their highlight (bright edge) on the top-left and their shadow falling bottom-right. They look like they belong on the same page. <strong>Click the cards</strong> to see what happens when each card has its own light source.
+            </p>
+          </div>
+        </div>
+
+        <div style="background:rgba(139,120,147,0.08);border-radius:12px;padding:14px 18px;margin-top:16px;">
+          <p style="color:#5a4a6a;font-size:13px;margin:0;line-height:1.5;">
+            <strong>The simple version:</strong> Imagine the sun is shining through a window at the top-left of the screen. Every card, button, and panel should have its bright edge toward that window, and its shadow going the other way. If one element breaks this, it looks "off" even if you can't explain why.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ NAMING THINGS ============ -->
+      <section id="naming" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">How We Name Things</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:8px;">Every button in the app gets a name made of three parts. This means when Paul says "use the primary-solid-lilac button here," everyone knows exactly which one he means — no screenshots needed.</p>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">The recipe is: <code style="background:rgba(139,120,147,0.12);padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600;">[role]-[treatment]-[accent]</code>. Pick one from each group below and watch the preview update. Click again to unselect.</p>
+
+        <!-- STEP 1: ROLE -->
+        <div class="demo-area" style="margin-bottom:16px;">
+          <h3 style="font-size:15px;font-weight:600;color:#3d2e4d;margin:0 0 4px;">Step 1: Role — what's the button's <em>job</em>?</h3>
+          <p style="color:#6b5a7a;font-size:13px;margin:0 0 14px;">Think of a webpage like a team. Each button has a different job to do.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-role-primary" onclick="toggleName('role','primary')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">primary</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>The main action.</strong> The thing the page <em>most wants you to do</em>. Like "Save," "Book Appointment," or "Confirm." Usually the biggest, boldest button on the page. Every page typically has just one.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-role-secondary" onclick="toggleName('role','secondary')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">secondary</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>The backup option.</strong> Things like "Cancel," "Go Back," or "Skip." They're there if you need them, but they don't shout for attention. Quieter, less bold than primary.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-role-danger" onclick="toggleName('role','danger')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">danger</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Warning — this does something permanent.</strong> "Delete," "Remove," "Deactivate." Usually red, because red = caution. You see these on confirmation popups when something can't be undone.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-role-utility" onclick="toggleName('role','utility')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">utility</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>A small helper.</strong> Close buttons (the ✕), settings cogs, little "+ Add" links. Not a main action — just a tool that sits quietly until you need it.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: TREATMENT -->
+        <div class="demo-area" style="margin-bottom:16px;">
+          <h3 style="font-size:15px;font-weight:600;color:#3d2e4d;margin:0 0 4px;">Step 2: Treatment — what does it <em>look</em> like?</h3>
+          <p style="color:#6b5a7a;font-size:13px;margin:0 0 14px;">Same job, different outfit. A "Save" button could be a solid block of colour or a subtle outline — the treatment is which style it wears.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-treatment-solid" onclick="toggleName('treatment','solid')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">solid</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Filled in with colour.</strong> A solid block — the most attention-grabbing style. Like a painted sign that says "PRESS ME." You can't miss it.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-treatment-glass" onclick="toggleName('treatment','glass')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">glass</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Frosted glass effect.</strong> Semi-see-through with a blur — the GroomOS signature look. Fancy and modern, but still readable. Like looking through a bathroom window.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-treatment-outline" onclick="toggleName('treatment','outline')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">outline</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Just a border, no fill.</strong> The inside is transparent — you only see the edge and the text. Quieter than solid. Good for secondary actions that shouldn't compete with the main button.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-treatment-ghost" onclick="toggleName('treatment','ghost')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">ghost</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Almost invisible — just text.</strong> No border, no background. Looks like a text link. The quietest option. Used for things like "Skip for now" where you barely want people to notice it.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: ACCENT -->
+        <div class="demo-area" style="margin-bottom:16px;">
+          <h3 style="font-size:15px;font-weight:600;color:#3d2e4d;margin:0 0 4px;">Step 3: Accent — what <em>colour</em>?</h3>
+          <p style="color:#6b5a7a;font-size:13px;margin:0 0 14px;">The colour gives it personality and helps group things visually.</p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-accent-lilac" onclick="toggleName('accent','lilac')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">lilac</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>GroomOS signature purple.</strong> The brand colour. When in doubt, lilac is almost always the right choice for primary actions.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-accent-coral" onclick="toggleName('accent','coral')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">coral</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Red/orange — for warnings.</strong> Paired with danger buttons. Says "be careful" without screaming. Delete, remove, cancel subscription — that kind of thing.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-accent-slate" onclick="toggleName('accent','slate')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">slate</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Neutral grey.</strong> Blends in quietly. Used for secondary and utility buttons that shouldn't distract from the main action.</div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <button type="button" id="nb-accent-dark" onclick="toggleName('accent','dark')" style="min-width:100px;padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;">dark</button>
+              <div style="color:#6b5a7a;font-size:13px;line-height:1.5;padding-top:4px;"><strong>Near-black.</strong> Bold and serious. Currently used on some primary buttons in GroomOS — strong contrast on light backgrounds.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div style="background:rgba(255,255,255,0.5);border-radius:14px;padding:24px;text-align:center;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:600;color:#3d2e4d;">Live Preview</div>
+            <button type="button" onclick="resetNameBuilder()" style="padding:5px 14px;border-radius:8px;border:1px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#6b5a7a;font-size:12px;cursor:pointer;">Reset all</button>
+          </div>
+          <div id="namePreviewBtn" style="display:inline-block;padding:12px 28px;border-radius:10px;background:#e0d8e6;color:#6b5a7a;font-size:15px;font-weight:500;transition:all .3s ease;min-width:160px;">Button</div>
+          <div id="nameResult" style="font-size:18px;font-weight:700;color:#3d2e4d;font-family:monospace;padding:12px 0 0;min-height:28px;transition:all .2s;">
+            <span style="color:#aaa;font-weight:400;font-size:14px;">pick one from each step above</span>
+          </div>
+          <div id="nameExplainer" style="color:#6b5a7a;font-size:13px;margin-top:8px;line-height:1.5;min-height:20px;"></div>
+        </div>
+
+        <div style="background:rgba(139,120,147,0.08);border-radius:12px;padding:14px 18px;margin-top:16px;">
+          <p style="color:#5a4a6a;font-size:13px;margin:0;line-height:1.5;">
+            <strong>Why bother with names?</strong> When you say "the primary-solid-lilac button needs more padding," everyone instantly knows which exact button you're talking about — no screenshots needed. It's like a shared language for the design.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ GLOSSARY ============ -->
+      <section id="glossary" class="section-card glass" style="border-radius:20px;padding:32px;">
+        <h2 style="font-size:20px;font-weight:700;color:#3d2e4d;margin:0 0 8px;">Quick Glossary</h2>
+        <p style="color:#6b5a7a;font-size:14px;margin-bottom:20px;">Terms you'll hear Paul (or Claude) throw around. Don't stress about memorising these — just come back here when something sounds unfamiliar.</p>
+
+        <div style="display:flex;flex-direction:column;gap:8px;" id="glossaryList">
+          <!-- Glossary items rendered by JS for search functionality -->
+        </div>
+
+        <!-- Search -->
+        <div style="margin-top:16px;">
+          <input type="text" id="glossarySearch" placeholder="Search terms..." oninput="filterGlossary()" style="width:100%;padding:10px 16px;border-radius:10px;border:1px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#3d2e4d;font-size:14px;outline:none;">
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Footer -->
+<footer style="max-width:960px;margin:0 auto;padding:0 24px 40px;text-align:center;">
+  <p style="color:#9a8aa8;font-size:12px;">Erin's Training Handbook · GroomOS Design · Session 80 · April 2026</p>
+</footer>
+
+<script>
+  // === Tool overlay — show/hide hidden tool divs ===
+  function openToolOverlay(toolId) {
+    // Hide all tool pages first
+    document.querySelectorAll('.tool-page').forEach(function(p) { p.style.display = 'none'; });
+    // Show the requested one
+    var page = document.getElementById('tool-' + toolId);
+    if (page) page.style.display = 'block';
+    // Show the overlay
+    document.getElementById('toolOverlay').classList.add('active');
+    document.getElementById('toolContent').scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeToolOverlay(e) {
+    if (e && e.target !== document.getElementById('toolOverlay')) return;
+    document.getElementById('toolOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeToolOverlay();
+  });
+
+  // === UI Patterns demo functions ===
+  function epCloseAll() {
+    var bd = document.getElementById('epBackdrop');
+    var m = document.getElementById('epModal');
+    var s = document.getElementById('epSlidein');
+    var d = document.getElementById('epDrawer');
+    if (bd) { bd.style.opacity = '0'; bd.style.pointerEvents = 'none'; }
+    if (m) { m.style.opacity = '0'; m.style.pointerEvents = 'none'; m.style.transform = 'translate(-50%,-50%) scale(0.95)'; }
+    if (s) { s.style.transform = 'translateX(100%)'; s.style.pointerEvents = 'none'; }
+    if (d) { d.style.transform = 'translateY(100%)'; d.style.pointerEvents = 'none'; }
+  }
+  function epShowModal() {
+    var bd = document.getElementById('epBackdrop');
+    var m = document.getElementById('epModal');
+    bd.style.opacity = '1'; bd.style.pointerEvents = 'all';
+    m.style.opacity = '1'; m.style.pointerEvents = 'all'; m.style.transform = 'translate(-50%,-50%) scale(1)';
+  }
+  function epShowSlidein() {
+    var bd = document.getElementById('epBackdrop');
+    var s = document.getElementById('epSlidein');
+    bd.style.opacity = '1'; bd.style.pointerEvents = 'all';
+    s.style.transform = 'translateX(0)'; s.style.pointerEvents = 'all';
+  }
+  function epShowDrawer() {
+    var bd = document.getElementById('epBackdrop');
+    var d = document.getElementById('epDrawer');
+    bd.style.opacity = '1'; bd.style.pointerEvents = 'all';
+    d.style.transform = 'translateY(0)'; d.style.pointerEvents = 'all';
+  }
+  function epShowToast() {
+    var t = document.getElementById('epToast');
+    t.style.transform = 'translateY(0)'; t.style.opacity = '1'; t.style.pointerEvents = 'all';
+    setTimeout(function() { t.style.transform = 'translateY(20px)'; t.style.opacity = '0'; t.style.pointerEvents = 'none'; }, 2500);
+  }
+
+  // === Nav: scroll to section (no page navigation) ===
+  function scrollToSection(id, el) {
+    const target = document.getElementById(id);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Highlight active nav item
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
+
+  // === Colour swatch copy ===
+  function copySwatch(hex) {
+    navigator.clipboard.writeText(hex).then(() => {
+      const toast = document.getElementById('copyToast');
+      toast.textContent = 'Copied ' + hex;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    });
+  }
+
+  // === Glass demo sliders ===
+  function updateBlur(val) {
+    const card = document.getElementById('glassDemo');
+    card.style.backdropFilter = 'blur(' + val + 'px)';
+    card.style.webkitBackdropFilter = 'blur(' + val + 'px)';
+    document.getElementById('blurLabel').textContent = 'Blur: ' + val + 'px';
+  }
+  function updateOpacity(val) {
+    const card = document.getElementById('glassDemo');
+    const opacity = val / 100;
+    card.style.background = 'rgba(255,255,255,' + opacity + ')';
+  }
+
+  // === One Sun demo ===
+  let sunCorrect = true;
+  function toggleSunDemo() {
+    sunCorrect = !sunCorrect;
+    const container = document.getElementById('oneSunDemo');
+    const cards = container.querySelectorAll('.sun-demo-card');
+    const label = document.getElementById('sunLabel');
+    const explainer = document.getElementById('sunExplainer');
+
+    if (sunCorrect) {
+      // All same direction
+      cards.forEach(c => {
+        c.style.boxShadow = 'inset 1px 1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(0,0,0,0.08)';
+        c.style.borderTop = '1px solid rgba(255,255,255,0.6)';
+        c.style.borderLeft = '1px solid rgba(255,255,255,0.6)';
+        c.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+        c.style.borderRight = '1px solid rgba(255,255,255,0.3)';
+      });
+      label.innerHTML = '✓ One Sun — all cards lit from the same direction';
+      label.style.color = '#22c55e';
+      explainer.innerHTML = '<strong>Right now:</strong> All three cards have their highlight (bright edge) on the top-left and their shadow falling bottom-right. They look like they belong on the same page. <strong>Click the cards</strong> to see what happens when each card has its own light source.';
+    } else {
+      // Broken: each card lit differently
+      cards[0].style.boxShadow = 'inset 1px 1px 0 rgba(255,255,255,0.7), 0 4px 12px rgba(0,0,0,0.08)';
+      cards[0].style.borderTop = '1px solid rgba(255,255,255,0.6)';
+      cards[0].style.borderLeft = '1px solid rgba(255,255,255,0.6)';
+
+      cards[1].style.boxShadow = 'inset -1px -1px 0 rgba(255,255,255,0.7), 0 -4px 12px rgba(0,0,0,0.08)';
+      cards[1].style.borderBottom = '1px solid rgba(255,255,255,0.6)';
+      cards[1].style.borderRight = '1px solid rgba(255,255,255,0.6)';
+      cards[1].style.borderTop = '1px solid rgba(255,255,255,0.3)';
+      cards[1].style.borderLeft = '1px solid rgba(255,255,255,0.3)';
+
+      cards[2].style.boxShadow = 'inset -1px 1px 0 rgba(255,255,255,0.7), -4px 4px 12px rgba(0,0,0,0.08)';
+      cards[2].style.borderTop = '1px solid rgba(255,255,255,0.6)';
+      cards[2].style.borderRight = '1px solid rgba(255,255,255,0.6)';
+      cards[2].style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+      cards[2].style.borderLeft = '1px solid rgba(255,255,255,0.3)';
+
+      label.innerHTML = '✗ Multiple suns — each card lit from a different direction';
+      label.style.color = '#ef4444';
+      explainer.innerHTML = '<strong>Right now:</strong> Card A is lit from the top-left, Card B from the bottom-right, Card C from the top-right. They look like they were designed by three different people and pasted onto the same page. It feels "off" even if you can\'t pinpoint why. <strong>Click again</strong> to fix it.';
+    }
+  }
+
+  // === Name builder (toggle + live preview) ===
+  var nameParts = { role: null, treatment: null, accent: null };
+  var nbBtnStyle = 'padding:8px 16px;border-radius:10px;border:2px solid rgba(139,120,147,0.25);background:rgba(255,255,255,0.7);color:#5a4a6a;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;min-width:100px;';
+  var nbBtnActiveStyle = 'padding:8px 16px;border-radius:10px;border:2px solid #8B7893;background:#8B7893;color:white;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;min-width:100px;';
+
+  function toggleName(part, value) {
+    // Toggle: click again to unselect
+    if (nameParts[part] === value) {
+      nameParts[part] = null;
+    } else {
+      nameParts[part] = value;
+    }
+    refreshNameButtons();
+    updateNamePreview();
+  }
+
+  function resetNameBuilder() {
+    nameParts = { role: null, treatment: null, accent: null };
+    refreshNameButtons();
+    updateNamePreview();
+  }
+
+  function refreshNameButtons() {
+    var parts = ['role', 'treatment', 'accent'];
+    var allValues = {
+      role: ['primary','secondary','danger','utility'],
+      treatment: ['solid','glass','outline','ghost'],
+      accent: ['lilac','coral','slate','dark']
+    };
+    for (var p = 0; p < parts.length; p++) {
+      var part = parts[p];
+      var vals = allValues[part];
+      for (var v = 0; v < vals.length; v++) {
+        var btn = document.getElementById('nb-' + part + '-' + vals[v]);
+        if (btn) {
+          if (nameParts[part] === vals[v]) {
+            btn.style.cssText = nbBtnActiveStyle;
+          } else {
+            btn.style.cssText = nbBtnStyle;
+          }
+        }
+      }
+    }
+  }
+
+  // Colour + style maps for the live preview button
+  var accentColors = {
+    lilac: { bg: '#8B7893', text: '#fff', border: '#8B7893' },
+    coral: { bg: '#ef4444', text: '#fff', border: '#ef4444' },
+    slate: { bg: '#6b7280', text: '#fff', border: '#9ca3af' },
+    dark:  { bg: '#111827', text: '#fff', border: '#111827' }
+  };
+
+  function updateNamePreview() {
+    var result = document.getElementById('nameResult');
+    var preview = document.getElementById('namePreviewBtn');
+    var explainer = document.getElementById('nameExplainer');
+    var chosen = [nameParts.role, nameParts.treatment, nameParts.accent].filter(Boolean);
+
+    // Update name text
+    if (chosen.length === 0) {
+      result.innerHTML = '<span style="color:#aaa;font-weight:400;font-size:14px;">pick one from each step above</span>';
+    } else {
+      result.textContent = chosen.join('-');
+    }
+
+    // Build explainer sentence
+    var sentences = [];
+    if (nameParts.role === 'primary') sentences.push("This is the main action on the page");
+    if (nameParts.role === 'secondary') sentences.push("This is a supporting/backup action");
+    if (nameParts.role === 'danger') sentences.push("This does something permanent or destructive");
+    if (nameParts.role === 'utility') sentences.push("This is a small helper tool");
+    if (nameParts.treatment === 'solid') sentences.push("with a solid filled background");
+    if (nameParts.treatment === 'glass') sentences.push("with a frosted glass effect");
+    if (nameParts.treatment === 'outline') sentences.push("with just a border outline");
+    if (nameParts.treatment === 'ghost') sentences.push("that looks like plain text");
+    if (nameParts.accent === 'lilac') sentences.push("in the GroomOS signature purple");
+    if (nameParts.accent === 'coral') sentences.push("in warning red");
+    if (nameParts.accent === 'slate') sentences.push("in neutral grey");
+    if (nameParts.accent === 'dark') sentences.push("in near-black");
+    explainer.textContent = sentences.length > 0 ? sentences.join(', ') + '.' : '';
+
+    // Update preview button appearance
+    var color = accentColors[nameParts.accent] || { bg: '#e0d8e6', text: '#6b5a7a', border: '#ccc' };
+    var treatment = nameParts.treatment || 'solid';
+    var role = nameParts.role;
+    var label = role === 'primary' ? 'Save' : role === 'secondary' ? 'Cancel' : role === 'danger' ? 'Delete' : role === 'utility' ? '+ Add' : 'Button';
+
+    if (treatment === 'solid') {
+      preview.style.background = color.bg;
+      preview.style.color = color.text;
+      preview.style.border = '2px solid ' + color.bg;
+      preview.style.backdropFilter = 'none';
+    } else if (treatment === 'glass') {
+      preview.style.background = 'rgba(139,120,147,0.25)';
+      preview.style.color = '#3d2e4d';
+      preview.style.border = '1px solid rgba(255,255,255,0.5)';
+      preview.style.backdropFilter = 'blur(12px)';
+    } else if (treatment === 'outline') {
+      preview.style.background = 'transparent';
+      preview.style.color = color.bg;
+      preview.style.border = '2px solid ' + color.border;
+      preview.style.backdropFilter = 'none';
+    } else if (treatment === 'ghost') {
+      preview.style.background = 'transparent';
+      preview.style.color = color.bg;
+      preview.style.border = '2px solid transparent';
+      preview.style.backdropFilter = 'none';
+      preview.style.textDecoration = 'underline';
+    }
+    if (treatment !== 'ghost') preview.style.textDecoration = 'none';
+
+    preview.textContent = label;
+  }
+
+  // === Glossary ===
+  const glossaryData = [
+    { term: 'Glassmorphism', def: 'A design style where elements look like frosted glass — semi-transparent with a blur effect. GroomOS\'s signature aesthetic.' },
+    { term: 'One Sun Rule', def: 'Every element on the page is lit by the same imaginary light source. Highlights and shadows all go the same direction.' },
+    { term: 'Modal', def: 'A popup box that appears in the centre of the screen with a dark overlay behind it. You have to deal with it before doing anything else.' },
+    { term: 'Slide-in / Side Panel', def: 'A panel that slides in from the right edge. Used for editing details without leaving the page.' },
+    { term: 'Drawer', def: 'A panel that slides up from the bottom. Common on mobile — like pulling a shelf up.' },
+    { term: 'Tooltip', def: 'A tiny hint that appears when you hover over something. Disappears when you move away.' },
+    { term: 'Toast', def: 'A brief notification that pops up (usually bottom or top corner) and disappears on its own. Like "Saved!" confirmations.' },
+    { term: 'Tailwind CSS', def: 'The styling system GroomOS uses. Instead of writing separate style files, you add short class names directly to elements — like "bg-white rounded-lg px-4".' },
+    { term: 'Component', def: 'A reusable piece of the interface — like a button, card, or navigation bar. Build it once, use it everywhere.' },
+    { term: 'Variant', def: 'A version of a component. One button component might have solid, outline, and ghost variants — same shape, different look.' },
+    { term: 'Primary CTA', def: 'The main "call to action" button on a page — the one you most want people to click. Usually the most visually prominent button.' },
+    { term: 'Sandbox', def: 'A test page where we can play with components in isolation, without affecting the real app.' },
+    { term: 'Design Lexicon', def: 'Our shared dictionary of named design patterns. Each entry has a name, what it looks like, and when to use it.' },
+    { term: 'Cataloguing', def: 'Design session mode: survey what exists in the app, name the variants, organise them into groups.' },
+    { term: 'Refining', def: 'Design session mode: pick one specific variant and perfect it — exact colours, spacing, behaviour.' },
+    { term: 'Rolling out', def: 'Design session mode: take a refined variant and apply it consistently across all pages that need it.' },
+    { term: 'DRIP theme', def: 'A visual theme in GroomOS. The app can change its look (colours, gradients, mood) while keeping the same structure.' },
+    { term: 'Backdrop-filter', def: 'The CSS property that creates the frosted glass blur effect. It blurs whatever is behind an element.' },
+    { term: 'Border-radius', def: 'How rounded the corners of an element are. GroomOS uses generously rounded corners — everything is soft, no sharp edges.' },
+    { term: 'Hex code', def: 'A colour code like #8B7893. Six characters that define an exact colour. The swatches in this handbook show you hex codes for GroomOS colours.' },
+    { term: 'Figma', def: 'A design tool — like Photoshop but specifically for designing app interfaces. Paul may use it for mockups.' },
+    { term: 'Responsive', def: 'When a design adjusts to different screen sizes — desktop, tablet, phone. A responsive page rearranges itself instead of just shrinking.' },
+  ];
+
+  function renderGlossary(items) {
+    const container = document.getElementById('glossaryList');
+    container.innerHTML = items.map(item => `
+      <div style="background:rgba(255,255,255,0.5);border-radius:12px;padding:14px 18px;border:1px solid rgba(139,120,147,0.1);">
+        <div style="font-weight:600;color:#3d2e4d;font-size:14px;">${item.term}</div>
+        <div style="color:#6b5a7a;font-size:13px;margin-top:4px;line-height:1.5;">${item.def}</div>
+      </div>
+    `).join('');
+  }
+
+  function filterGlossary() {
+    const query = document.getElementById('glossarySearch').value.toLowerCase();
+    const filtered = glossaryData.filter(item =>
+      item.term.toLowerCase().includes(query) || item.def.toLowerCase().includes(query)
+    );
+    renderGlossary(filtered);
+  }
+
+  // Initial render
+  renderGlossary(glossaryData);
+
+  // Scroll spy for nav — matches by onclick text content
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sectionIds = ['welcome','toolkit','colours','glass','one-sun','naming','glossary'];
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const top = section.offsetTop - 80;
+      if (window.scrollY >= top) current = section.getAttribute('id');
+    });
+    navLinks.forEach((link, i) => {
+      link.classList.remove('active');
+      if (sectionIds[i] === current) link.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
