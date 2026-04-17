@@ -523,4 +523,56 @@
                 });
             });
             var fbChange = document.getElementById('fbChange');
-            if (fbChange) fbChan
+            if (fbChange) fbChange.addEventListener('input', function() { feedbackState.changeRequest = fbChange.value; });
+            var fbAddRemove = document.getElementById('fbAddRemove');
+            if (fbAddRemove) fbAddRemove.addEventListener('input', function() { feedbackState.addRemove = fbAddRemove.value; });
+            document.querySelectorAll('.choose-reading').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    feedbackState.readingExperience = feedbackState.readingExperience === btn.dataset.value ? '' : btn.dataset.value;
+                    document.querySelectorAll('.choose-reading').forEach(function(b) { b.classList.toggle('active', b.dataset.value === feedbackState.readingExperience); });
+                });
+            });
+            document.querySelectorAll('.choose-content').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    feedbackState.contentAmount = feedbackState.contentAmount === btn.dataset.value ? '' : btn.dataset.value;
+                    document.querySelectorAll('.choose-content').forEach(function(b) { b.classList.toggle('active', b.dataset.value === feedbackState.contentAmount); });
+                });
+            });
+            document.querySelectorAll('.choose-looks').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    feedbackState.looks = feedbackState.looks === btn.dataset.value ? '' : btn.dataset.value;
+                    document.querySelectorAll('.choose-looks').forEach(function(b) { b.classList.toggle('active', b.dataset.value === feedbackState.looks); });
+                });
+            });
+            var fbImprovement = document.getElementById('fbImprovement');
+            if (fbImprovement) fbImprovement.addEventListener('input', function() { feedbackState.improvement = fbImprovement.value; });
+            var fbGeneral = document.getElementById('fbGeneral');
+            if (fbGeneral) fbGeneral.addEventListener('input', function() { feedbackState.generalComments = fbGeneral.value; });
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    var msg = document.getElementById('fbMsg');
+                    var hasContent = feedbackState.useful || feedbackState.bestSections.length || (feedbackState.changeRequest && feedbackState.changeRequest.trim()) || (feedbackState.addRemove && feedbackState.addRemove.trim()) || feedbackState.readingExperience || feedbackState.contentAmount || feedbackState.looks || (feedbackState.improvement && feedbackState.improvement.trim()) || (feedbackState.generalComments && feedbackState.generalComments.trim());
+                    if (!hasContent) { msg.className = 'feedback-msg error'; msg.textContent = 'Please provide at least one piece of feedback.'; return; }
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                        action: 'feedback', user_name: USER, briefing_date: briefingDate, section: 'combined',
+                        responses: {
+                            useful: feedbackState.useful, best_sections: feedbackState.bestSections,
+                            change_request: feedbackState.changeRequest, add_remove: feedbackState.addRemove,
+                            reading_experience: feedbackState.readingExperience, content_amount: feedbackState.contentAmount,
+                            looks: feedbackState.looks, improvement: feedbackState.improvement, general_comments: feedbackState.generalComments
+                        }
+                    })})
+                    .then(function(res) { if (!res.ok) throw new Error('HTTP ' + res.status); msg.className = 'feedback-msg success'; msg.textContent = 'Thank you! Your feedback has been submitted.'; submitBtn.textContent = 'Submitted \u2713'; })
+                    .catch(function(err) { console.error(err); msg.className = 'feedback-msg error'; msg.textContent = 'Failed to submit. Please try again.'; submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; });
+                });
+            }
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
