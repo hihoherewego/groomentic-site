@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Miso's Nested Logic Map — Second-Order Rules</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f8f6f2;
+    --wire: #c9c5bd;
+    --tier-0: #1a1a2e;
+    --tier-1: #3b82f6;
+    --tier-2: #8b5cf6;
+    --tier-3: #d97706;
+    --tier-4: #db2777;
+    --tier-5: #dc2626;
+  }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Tier colouring */
+  .tier-0 { --c: var(--tier-0); }
+  .tier-1 { --c: var(--tier-1); }
+  .tier-2 { --c: var(--tier-2); }
+  .tier-3 { --c: var(--tier-3); }
+  .tier-4 { --c: var(--tier-4); }
+  .tier-5 { --c: var(--tier-5); }
+  .tier-chip {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .125rem .5rem; border-radius: 9999px;
+    background: var(--c); color: white; font-size: .7rem; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .node-border { border-left: 3px solid var(--c); }
+  .node-accent { color: var(--c); }
+  .node-bg-soft { background: color-mix(in srgb, var(--c) 8%, white); }
+
+  /* Cascade connector */
+  .cascade-wrap { position: relative; }
+  .cascade-node { position: relative; }
+  .cascade-node::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: -12px;
+    bottom: 50%;
+    width: 2px;
+    background: var(--wire);
+  }
+  .cascade-node::after {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: calc(50% - 1px);
+    width: 16px;
+    height: 2px;
+    background: var(--wire);
+  }
+  .cascade-node:first-child::before { top: 0; }
+  .cascade-node.no-connector::before,
+  .cascade-node.no-connector::after { display: none; }
+
+  .principle-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d3e 100%);
+    color: white;
+  }
+  .quote {
+    font-style: italic;
+    color: #52525b;
+    border-left: 2px solid var(--wire);
+    padding-left: .625rem;
+    line-height: 1.5;
+  }
+  .operator {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: .7rem;
+    padding: .125rem .375rem;
+    border-radius: 4px;
+    background: rgba(0,0,0,.06);
+    color: #52525b;
+    margin: 0 .25rem;
+    vertical-align: middle;
+  }
+  .op-if { background: #dbeafe; color: #1d4ed8; }
+  .op-then { background: #d1fae5; color: #065f46; }
+  .op-except { background: #fef3c7; color: #92400e; }
+  .op-and { background: #e0e7ff; color: #4338ca; }
+  .op-or { background: #fce7f3; color: #9f1239; }
+  .op-meta { background: #f3e8ff; color: #6b21a8; }
+
+  /* Scenario simulator */
+  .scenario-btn {
+    transition: all .15s;
+    text-align: left;
+  }
+  .scenario-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgba(0,0,0,.08);
+  }
+  .scenario-btn.active {
+    background: var(--ink);
+    color: white;
+  }
+
+  /* Tree line for active scenario path */
+  .path-highlight {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    to   { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
+  }
+  .map-nav { display: inline-flex; gap: .25rem; background: rgba(0,0,0,.04); padding: .25rem; border-radius: 12px; }
+  .map-nav a { padding: .375rem .875rem; border-radius: 8px; font-size: .8rem; font-weight: 500; color: #52525b; text-decoration: none; transition: all .12s; display: inline-flex; align-items: center; gap: .375rem; }
+  .map-nav a.active { background: #1a1a2e; color: white; }
+  .map-nav a:not(.active):hover { background: rgba(255,255,255,.7); color: #1a1a2e; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="border-b border-stone-200 bg-stone-50/60 backdrop-blur-sm">
+  <div class="max-w-7xl mx-auto px-6 py-6">
+    <h1 class="text-2xl font-bold tracking-tight">Miso's Nested Logic Map</h1>
+    <p class="text-sm text-stone-600 mt-1">How Paul's rules stack, cascade, and override — captured from the S96 interview. Worked examples, each traced to his own words.</p>
+    <nav class="map-nav mt-3">
+      <a href="/via/logic-map">Logic Map</a>
+      <a href="/via/nested" class="active">Nested Logic</a>
+      <a href="/via/gates">Quick Gates</a>
+    </nav>
+
+    <!-- Tier legend -->
+    <div class="mt-4 flex items-center gap-2 flex-wrap text-xs">
+      <span class="text-stone-500 uppercase tracking-wider font-semibold mr-2">Tiers</span>
+      <span class="tier-chip tier-0">T0 · Principle</span>
+      <span class="text-stone-400">→</span>
+      <span class="tier-chip tier-1">T1 · Rule</span>
+      <span class="text-stone-400">→</span>
+      <span class="tier-chip tier-2">T2 · Exception</span>
+      <span class="text-stone-400">→</span>
+      <span class="tier-chip tier-3">T3 · Exception-to-exception</span>
+      <span class="text-stone-400">→</span>
+      <span class="tier-chip tier-4">T4 · Meta-override</span>
+      <span class="text-stone-400">→</span>
+      <span class="tier-chip tier-5">T5 · Outlier / rare case</span>
+    </div>
+  </div>
+</header>
+
+<!-- Intro -->
+<section class="max-w-4xl mx-auto px-6 py-8">
+  <div class="bg-white rounded-xl p-6 border border-stone-200">
+    <h2 class="font-bold text-lg mb-3">What this page is showing you</h2>
+    <p class="text-sm leading-relaxed mb-3">
+      When you said "second-order logic" — <span class="operator op-if">IF</span> X <span class="operator op-and">AND</span> we've performed Y <span class="operator op-then">THEN</span> Z — you were pointing at something your answers are full of but the first Logic Map flattened out. Each rule doesn't sit on its own; it sits inside a stack of principles and gets overridden by other rules <em>that themselves serve higher-order goals</em>.
+    </p>
+    <p class="text-sm leading-relaxed mb-3">
+      Your S1 edit is the clearest example. You added: <span class="font-mono text-xs bg-stone-100 px-1.5 py-0.5 rounded">"OR when I'm not fully booked the next day and an opportunity to fill that space with a new client arises"</span> — that's not just an exception, it's an exception <em>that invokes G1 (fill the next day)</em> as its justification. Tier 3, easily.
+    </p>
+    <p class="text-sm leading-relaxed">
+      Below: six scenarios from your interview, each traced as a cascade. The tier colour gets warmer as the logic gets deeper.
+    </p>
+  </div>
+</section>
+
+<!-- Scenario simulator -->
+<section class="max-w-7xl mx-auto px-6 pb-6">
+  <div class="bg-white rounded-xl border border-stone-200 p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-bold text-sm uppercase tracking-wider text-stone-600">Pick a scenario</h2>
+      <span class="text-xs text-stone-500" id="active-scenario-label">Click a scenario below to focus the cascade.</span>
+    </div>
+    <div id="scenario-buttons" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"></div>
+  </div>
+</section>
+
+<!-- Cascades -->
+<main id="cascades" class="max-w-7xl mx-auto px-6 pb-16 space-y-8"></main>
+
+<footer class="border-t border-stone-200 py-6 text-center text-sm text-stone-500">
+  All quotes are Paul's own words from the S96 Logic Interview. Tier placements are provisional — drag them around with your own judgement and regenerate the map.
+</footer>
+
+<script>
+// ─── Data: six scenarios, each a tree of logic ─────────────────────────────
+
+const SCENARIOS = [
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'saturday-new-client',
+    title: 'A new client asks for a Saturday appointment',
+    source: 'Q5 Scheduling',
+    summary: 'The clearest worked example of a three-tier rule hierarchy — and a Tier 0 positioning principle behind it.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'Being booked with Paul should feel about as important as an appointment with a surgeon or specialist.',
+      quote: 'I like to think getting in to see me is about as important as having an appointment with a surgeon or medical specialist. We need the client to think in those terms. It helps a lot when it comes to preventing cancellations too.',
+      children: [
+        {
+          tier: 1, operator: 'RULE',
+          text: 'No Saturday bookings for new clients.',
+          quote: 'They are coveted spots and so I like to "protect" Saturday spots for my good existing clients.',
+          children: [
+            {
+              tier: 2, operator: 'EXCEPTION · IF',
+              text: 'We aren\'t fully booked on Saturday 1-2 days out → can offer the gap.',
+              quote: 'This CAN be broken IF we aren\'t fully booked on Saturday when we are 1-2 days out.',
+              children: [
+                {
+                  tier: 3, operator: 'INVOKES',
+                  text: 'This exception only fires because G1 (fill the next grooming day) outranks the Saturday-protection rule.',
+                  quote: null,
+                  children: []
+                }
+              ]
+            },
+            {
+              tier: 2, operator: 'EXCEPTION · IF',
+              text: 'New client can ONLY do Saturdays → offer first/last slot in ~5 weeks time.',
+              quote: 'Let\'s imagine we are talking to a new client who can ONLY do Saturdays... I can imagine scheduling them in for the first or last groom of the day on a Saturday in 5 weeks time, and explain it\'s my first availability (whether that is true or not).',
+              children: [
+                {
+                  tier: 3, operator: 'TACTIC',
+                  text: 'Frame the offered slot as "my first availability" — surgeon-appointment framing, even if not strictly true.',
+                  quote: null,
+                  children: [
+                    {
+                      tier: 4, operator: 'META',
+                      text: 'Don\'t stack the book with Saturday-only clients. This tactic limits their entry, not invites it.',
+                      quote: 'Big picture, I don\'t want to stack my book with clients who can only do Saturday.',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'returning-client-time',
+    title: 'A returning client (no tags) — what time should Miso offer?',
+    source: 'Q6 Scheduling',
+    summary: 'Day wins over time, with drive-time logic as a third-order modifier. Notice how the "less perfect time" concession is itself a move in service of G1.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'G1 — Always fill the NEXT grooming day first. Everything else defers to this.',
+      quote: 'A really important "rule" is to always ensure the NEXT grooming day is full.',
+      children: [
+        {
+          tier: 1, operator: 'RULE',
+          text: 'Secure the DAY first. Time is secondary.',
+          quote: 'I\'d rather secure the appointment at a "not technically perfect" start time because the DAY works.',
+          children: [
+            {
+              tier: 2, operator: 'HEURISTIC',
+              text: 'Match the client\'s usual time if easy — but don\'t chase it.',
+              quote: 'We can check what time they USUALLY book for and try and match it, or get close to that same time. But chances are the DAY will be more important to get right than the TIME.',
+              children: [
+                {
+                  tier: 3, operator: 'IF · ELIF',
+                  text: 'IF drive_time > 20 min → don\'t offer 8:30am slot. IF drive_time < 15 min → good candidate for first OR last slot.',
+                  quote: 'Clients who travel more than 20 minutes to get to me should probably not be offered the 8:30am start time. That\'s peak hour. But someone who lives within 15 minutes of me, that\'s a great candidate for offering the first or last appointment of the day.',
+                  children: [
+                    {
+                      tier: 4, operator: 'META',
+                      text: 'Peak-hour logic also applies to their drive home — close clients can take the LAST slot too.',
+                      quote: 'Heading home in the afternoon, they are likely to face traffic too.',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'online-booking-preference',
+    title: 'Client self-booked a time online — is it locked in?',
+    source: 'Q6 Scheduling + S96 addendum',
+    summary: 'Default: match the booked time. But tight days can flex it, some clients are locked, and some VIPs get MORE accommodation than they asked for. A beautiful fork at Tier 4.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'Client autonomy — most clients pick their own slot through online booking. That\'s the point of self-service. Respect what they chose.',
+      quote: 'I really want you to find a time to book them in that matches their stated preference.',
+      children: [
+        {
+          tier: 1, operator: 'RULE',
+          text: 'Default: honour the booked time. Match stated preference unless a specific pressure overrides it.',
+          quote: 'In MOST instances, I really want you to find a time to book them in that matches their stated preference.',
+          children: [
+            {
+              tier: 2, operator: 'EXCEPTION · IF',
+              text: 'The day is getting tight — more demand than slots. May need to ask someone to shift.',
+              quote: 'I can imagine that when things are getting a little tight, then we may have to do some more creative scheduling to "tightly pack" my day.',
+              children: [
+                {
+                  tier: 3, operator: 'PROPOSAL PATTERN',
+                  text: 'Miso surfaces to Paul: "I want to put client X here, but that means asking client Y to start 30 min earlier or later." Most people can be asked without friction.',
+                  quote: 'You\'re also going to have the opportunity to say "hey Paul, I want to put client X here, but that means asking client Y to start {30 minutes earlier or later}." We SHOULD be able to ask people to adjust their start time and not expect to encounter difficulty.',
+                  children: [
+                    {
+                      tier: 4, operator: 'HARD BLOCKER',
+                      text: 'Client has an explicit "MUST start at X" note → do not propose moving this one. Even for tight days.',
+                      quote: 'Exceptions are for clients who have made it explicit they MUST start at a particular time (perhaps they are going to work and the husband/wife will handle the pickup later).',
+                      children: []
+                    },
+                    {
+                      tier: 4, operator: 'VIP OVERRIDE',
+                      text: 'VIP client (e.g. Diego / Wesley) → bend the other direction. They often ask to drop off earlier than their booked slot. Say yes.',
+                      quote: 'Diego (Wesley) is an example of a client who may grab the 11:30am timeslot, but he will often ask if he can drop the cat off earlier. Diego is basically VIP and I\'m going to bend over backwards to accommodate him because he\'s a good, nice person.',
+                      children: [
+                        {
+                          tier: 5, operator: 'WORST CASE · ACCEPTABLE',
+                          text: 'Drying box unavailable when VIP arrives early → cat waits 20-30 min in carrier. Acceptable because of the relationship.',
+                          quote: 'WORST case scenario, his cat may need to wait in his carrier for 20-30 minutes before a box becomes available.',
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'gaba-cat-morning',
+    title: 'GABA cat — does it have to be a morning slot?',
+    source: 'Q1 Scheduling',
+    summary: 'Tag-based default + note-based override + client-specific counter-override. The invariant that emerges: notes always trump tags.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'G3 — Specific client notes trump tag-based inferences. Always read notes first.',
+      quote: 'SPECIFIC notes you read tend to always trump interferences we can make about the scale of any given groom.',
+      children: [
+        {
+          tier: 1, operator: 'TAG-DEFAULT',
+          text: 'GABA tag → prefer morning, but flexible (8:30 / 9:30 / 11:00 all OK).',
+          quote: 'Gaba cats can also be seen at 9:30 and in some cases 11:00am.',
+          children: [
+            {
+              tier: 2, operator: 'IF note says',
+              text: '"Must be morning" / "early start" → overrides GABA\'s flexibility. That specific instruction wins.',
+              quote: 'Whilst Gaba is an important piece of information, reading notes that specify an early start time are more important.',
+              children: []
+            },
+            {
+              tier: 2, operator: 'IF note says',
+              text: '"GABA not essential" → the tag itself loses its scheduling effect; this cat is any-time.',
+              quote: 'A handful of Gaba cats I can see at any time as the Gaba is not as essential.',
+              children: [
+                {
+                  tier: 3, operator: 'DATA QUESTION',
+                  text: 'Which clients? Paul proposed an audit of client notes to identify them.',
+                  quote: 'If you wanted to do an audit of the clients\' notes of the clients I have on file, it may help you gain perspective of those instances and who those clients may be.',
+                  children: []
+                }
+              ]
+            },
+            {
+              tier: 2, operator: 'IF observed pattern',
+              text: 'Cat has a history of consistently easy afternoon grooms AND no problem/stress notes on recent visits → afternoon scheduling is permitted for THAT cat, despite the T1 morning preference.',
+              quote: 'IF you notice a pattern of a GABA cat coming in the afternoon, and the notes don\'t indicate this is a problem, then we are good to schedule an afternoon spot.',
+              children: [
+                {
+                  tier: 3, operator: 'WORKED EXAMPLE',
+                  text: 'Paul has a specific GABA-cat client (name not recalled) seen in afternoons. Owner gives GABA preventatively; Paul has never seen the cat without GABA. Every afternoon session has been easy, and the cat doesn\'t need SOLO either.',
+                  quote: 'I can\'t remember the name of the client who comes to mind, but I see their cat, with GABA, in the afternoons and will continue to do so... every time I see the cat with GABA in the afternoon, it\'s easy. And doesn\'t require a solo session either.',
+                  children: [
+                    {
+                      tier: 4, operator: 'META · GENERALIZES',
+                      text: 'This is a new class of override: observed-pattern beats tag-default, even without an explicit note. Miso can learn this per-cat by checking appointment history for the given tag + time-of-day combination and the absence of follow-up stress / reschedule / abort flags.',
+                      quote: null,
+                      children: [
+                        {
+                          tier: 5, operator: 'UNKNOWN',
+                          text: 'Paul has no baseline for this cat (never groomed without GABA). So we don\'t know whether the cat is "any-time flexible" or "GABA-dependent-to-be-any-time." The pattern rule is safer than assuming either.',
+                          quote: 'I THINK I\'ve only ever seen the cat on GABA (never had the chance to see without, so don\'t know what the cat\'s "baseline" is).',
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'long-gap-return',
+    title: 'A regular client hasn\'t been in for 12+ months',
+    source: 'Q9 Duration',
+    summary: 'Four tiers of reasoning, and a counter-philosophy that overrides sympathy. The Heather & Benji case at the bottom is a reminder that the inference can be wrong.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'Cat welfare + fairness to other clients both live at Tier 0. They can pull in opposite directions.',
+      quote: null,
+      children: [
+        {
+          tier: 1, operator: 'RULE',
+          text: 'Gap since last visit does NOT automatically expand the duration budget.',
+          quote: 'It doesn\'t. I may just not bathe them.',
+          children: [
+            {
+              tier: 2, operator: 'MID-GROOM DECISION',
+              text: 'If it turns out bad: may drop the bath, or split across 2 sessions.',
+              quote: 'I push back on clients who don\'t do the right thing IF I NEED TO. And that sometimes means splitting up the work over 2 sessions.',
+              children: [
+                {
+                  tier: 3, operator: 'PHILOSOPHY',
+                  text: 'Be sympathetic — life legitimately gets in the way (work travel, sick relative).',
+                  quote: 'Sometimes clients have legitimate reasons they were unable to see me on schedule. Perhaps they needed to travel for work or care for a sick relative.',
+                  children: [
+                    {
+                      tier: 4, operator: 'COUNTER-PHILOSOPHY',
+                      text: 'But: not a miracle worker. Business needs and other clients\' fairness outrank sympathy when they conflict.',
+                      quote: 'But at the end of the day, I\'m not a miracle worker either. And the needs of the business also need to be taken into account. Or the other clients too.',
+                      children: [
+                        {
+                          tier: 5, operator: 'OUTLIER',
+                          text: 'Heather & Benji — 18-month gap, Maine Coons, owners had started brushing. Expected terrible matting, got none. The T1 rule saved us from over-blocking.',
+                          quote: 'I used to see them 3-4 times a year for 2 years, so to go perhaps 18 months between grooms, I was expecting terrible matting... That wasn\'t the case though.',
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cat-stressed-mid-groom',
+    title: 'Cat is too stressed mid-groom',
+    source: 'Q15 Duration + examples across Q8',
+    summary: 'A clear welfare-cascade: stop → call → discuss. The Henry outlier is a Tier-5 reminder that some problems don\'t get solved.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'Welfare supersedes the schedule. Always.',
+      quote: 'I\'m always guided by how the cat reacts.',
+      children: [
+        {
+          tier: 1, operator: 'ACTION',
+          text: 'Stop the groom.',
+          quote: 'If I need to stop a groom, I stop it.',
+          children: [
+            {
+              tier: 2, operator: 'ACTION',
+              text: 'Text or call the owner.',
+              quote: 'I text or CALL the owner to explain the situation and ask them to return.',
+              children: [
+                {
+                  tier: 3, operator: 'TIME ALLOCATION',
+                  text: '~15 minutes to discuss options with owner. This is planned contingency, not slack.',
+                  quote: 'Then I take time discussing the options with them, that\'s probably 15 minutes.',
+                  children: [
+                    {
+                      tier: 4, operator: 'FOLLOW-UP',
+                      text: 'Options include trying gabapentin before the next attempt.',
+                      quote: 'Even if that means stopping it and trying gabapentin.',
+                      children: [
+                        {
+                          tier: 5, operator: 'OUTLIER',
+                          text: 'Henry the Maine Coon — genuinely unsolvable. ~8 of ~7000 grooms in Paul\'s career.',
+                          quote: 'Henry the Maine Coon is my most "confusing" cat. He\'s an outlier because I just can\'t seem to work with him anymore. Given I\'ve done around 7000 grooms and I can count maybe 8 instances I\'ve been unable to "solve" for a groom.',
+                          children: []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cancellation-fee-enforce',
+    title: 'Client cancels late — do we chase the $55 / $255?',
+    source: 'Q13 Pricing',
+    summary: 'The most strategic cascade in the interview. The "fuckwit filter" is Tier 5 — it\'s the META-reason the whole system exists.',
+    tree: {
+      tier: 0, operator: 'PRINCIPLE',
+      text: 'Protect Paul from unreliable clients without exposing him to their drama.',
+      quote: 'This is fraught with risk if I don\'t handle it right.',
+      children: [
+        {
+          tier: 1, operator: 'RULE',
+          text: 'Standard cancellation fee: $55. New-client no-show: $255 ($55 + $200 upfront).',
+          quote: null,
+          children: [
+            {
+              tier: 2, operator: 'GATE',
+              text: 'Paul\'s explicit permission required before ANY cancellation comms go out.',
+              quote: 'You\'ll always need to get my permission to send a cancellation request.',
+              children: [
+                {
+                  tier: 3, operator: 'TACTIC',
+                  text: 'The "clever trap": offer to waive the $255 rebook requirement and just insist on the $55 fee. Sounds lenient; isn\'t.',
+                  quote: 'Sometimes I offer to waive the need to pay $255 to rebook and just insist on the $55 for the missed appointment.',
+                  children: [
+                    {
+                      tier: 4, operator: 'OUTCOME · SILENT',
+                      text: 'Non-responsive client → do nothing. "That\'s great." Paul quietly disengages.',
+                      quote: 'Often they won\'t reply and that\'s great. I don\'t chase shit clients.',
+                      children: [
+                        {
+                          tier: 5, operator: 'META · FILTER STRATEGY',
+                          text: 'The entire system is designed as a self-sorting filter. Reliable clients respond and re-book. Unreliable ones vanish. Paul never has to have the confrontation.',
+                          quote: 'A % of the population will always be unreliable. I like to think I\'m good at weeding them out early, without exposing myself to their bullshit rants.',
+                          children: []
+                        }
+                      ]
+                    },
+                    {
+                      tier: 4, operator: 'OUTCOME · RESPONSIVE',
+                      text: 'Good-faith apology → listen. Consider waiver.',
+                      quote: 'If the person makes an obvious, good faithed effort to apologize or explain, I listen.',
+                      children: []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+];
+
+// ─── Rendering ──────────────────────────────────────────────────────────────
+
+const OP_CLASS = {
+  'PRINCIPLE': 'op-meta',
+  'META': 'op-meta',
+  'META · FILTER STRATEGY': 'op-meta',
+  'RULE': 'op-if',
+  'TAG-DEFAULT': 'op-if',
+  'HEURISTIC': 'op-if',
+  'EXCEPTION · IF': 'op-except',
+  'IF note says': 'op-except',
+  'IF · ELIF': 'op-except',
+  'ACTION': 'op-then',
+  'TIME ALLOCATION': 'op-then',
+  'OUTCOME · SILENT': 'op-then',
+  'OUTCOME · RESPONSIVE': 'op-then',
+  'TACTIC': 'op-and',
+  'GATE': 'op-and',
+  'MID-GROOM DECISION': 'op-then',
+  'PHILOSOPHY': 'op-meta',
+  'COUNTER-PHILOSOPHY': 'op-or',
+  'FOLLOW-UP': 'op-then',
+  'INVOKES': 'op-and',
+  'DATA QUESTION': 'op-or',
+  'OUTLIER': 'op-or',
+};
+
+function renderNode(node, depth = 0, isRoot = false) {
+  const opClass = OP_CLASS[node.operator] || 'op-if';
+  const children = node.children || [];
+  return `
+    <div class="cascade-node tier-${node.tier} ${isRoot ? 'no-connector' : ''} relative" style="margin-left: ${isRoot ? 0 : 32}px; margin-top: ${isRoot ? 0 : 16}px;">
+      <div class="node-border node-bg-soft rounded-r-lg pl-4 pr-4 py-3">
+        <div class="flex items-start gap-2 flex-wrap mb-2">
+          <span class="tier-chip tier-${node.tier}">T${node.tier}</span>
+          <span class="operator ${opClass}">${node.operator}</span>
+        </div>
+        <p class="text-sm leading-relaxed mb-2">${escapeHtml(node.text)}</p>
+        ${node.quote ? `<blockquote class="quote text-xs mt-2">"${escapeHtml(node.quote)}"</blockquote>` : ''}
+      </div>
+      ${children.length ? `<div class="mt-0">${children.map(c => renderNode(c, depth + 1, false)).join('')}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderCascade(scenario) {
+  return `
+    <article id="scenario-${scenario.id}" class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <header class="px-6 py-4 border-b border-stone-200 bg-stone-50">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h2 class="font-bold text-lg">${escapeHtml(scenario.title)}</h2>
+            <p class="text-sm text-stone-600 mt-0.5">${escapeHtml(scenario.summary)}</p>
+          </div>
+          <span class="text-xs font-mono text-stone-500 bg-stone-100 px-2 py-1 rounded">${escapeHtml(scenario.source)}</span>
+        </div>
+      </header>
+      <div class="p-6 cascade-wrap">
+        ${renderNode(scenario.tree, 0, true)}
+      </div>
+      <footer class="px-6 py-3 border-t border-stone-100 bg-stone-50/60">
+        <div class="flex items-center justify-between gap-3 text-xs text-stone-600 flex-wrap">
+          <span>Depth: <span class="font-mono font-semibold">${maxDepth(scenario.tree)}</span> tiers</span>
+          <span>Nodes: <span class="font-mono font-semibold">${countNodes(scenario.tree)}</span></span>
+          <span>Quotes captured: <span class="font-mono font-semibold">${countQuotes(scenario.tree)}</span></span>
+        </div>
+      </footer>
+    </article>
+  `;
+}
+
+function maxDepth(node) {
+  if (!node.children || node.children.length === 0) return node.tier;
+  return Math.max(...node.children.map(maxDepth), node.tier);
+}
+function countNodes(node) {
+  return 1 + (node.children || []).reduce((s, c) => s + countNodes(c), 0);
+}
+function countQuotes(node) {
+  return (node.quote ? 1 : 0) + (node.children || []).reduce((s, c) => s + countQuotes(c), 0);
+}
+
+function renderScenarioButtons() {
+  return SCENARIOS.map(s => `
+    <button class="scenario-btn p-3 border border-stone-200 rounded-lg bg-white text-sm hover:border-stone-400" data-id="${s.id}">
+      <div class="font-semibold leading-tight mb-1">${escapeHtml(s.title)}</div>
+      <div class="text-xs text-stone-500">${escapeHtml(s.source)} · ${maxDepth(s.tree)} tiers · ${countNodes(s.tree)} nodes</div>
+    </button>
+  `).join('');
+}
+
+function init() {
+  document.getElementById('scenario-buttons').innerHTML = renderScenarioButtons();
+  document.getElementById('cascades').innerHTML = SCENARIOS.map(renderCascade).join('');
+
+  document.querySelectorAll('.scenario-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.toggle('active', b === btn));
+      const target = document.getElementById('scenario-' + btn.dataset.id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.classList.add('path-highlight');
+        document.getElementById('active-scenario-label').textContent =
+          'Now showing: ' + SCENARIOS.find(s => s.id === btn.dataset.id).title;
+        setTimeout(() => target.classList.remove('path-highlight'), 3000);
+      }
+    });
+  });
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+</body>
+</html>

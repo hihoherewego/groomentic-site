@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Miso's Logic Map — Paul's Rule Book</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1a1a2e; --paper: #f8f6f2; --wire: #c9c5bd; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .rule-card { transition: transform .12s ease, box-shadow .12s ease; }
+  .rule-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -8px rgba(26,26,46,.18); }
+  .cat-scheduling { --accent: #3b82f6; --accent-bg: #dbeafe; }
+  .cat-duration   { --accent: #10b981; --accent-bg: #d1fae5; }
+  .cat-pricing    { --accent: #d97706; --accent-bg: #fed7aa; }
+  .cat-operations { --accent: #e11d48; --accent-bg: #fecdd3; }
+  .cat-meta       { --accent: #7c3aed; --accent-bg: #ede9fe; }
+  .cat-mobile     { --accent: #0891b2; --accent-bg: #cffafe; }
+  .accent-border { border-left: 4px solid var(--accent); }
+  .accent-bg { background: var(--accent-bg); color: var(--accent); }
+  .chip { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .5rem; border-radius: 9999px; font-size: .7rem; font-weight: 500; white-space: nowrap; }
+  .chip-hard { background: #1a1a2e; color: #fff; }
+  .chip-soft { background: #fef3c7; color: #92400e; }
+  .chip-heuristic { background: transparent; color: #6b7280; border: 1px dashed #9ca3af; }
+  .chip-meta { background: #ede9fe; color: #6d28d9; }
+  .pill { display: inline-block; padding: .125rem .5rem; background: rgba(0,0,0,.05); border-radius: 6px; font-size: .75rem; font-family: 'JetBrains Mono', monospace; }
+  .then-block { background: linear-gradient(180deg, rgba(0,0,0,.02) 0%, rgba(0,0,0,.04) 100%); border-left: 3px solid var(--accent); padding: .75rem; border-radius: 0 6px 6px 0; }
+  .quote { font-family: 'Inter', serif; font-style: italic; color: #52525b; border-left: 2px solid var(--wire); padding-left: .75rem; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dot-filled { background: var(--ink); }
+  .dot-empty { background: #d4d4d8; }
+  .hidden { display: none !important; }
+  .view-btn { padding: .375rem .875rem; border-radius: 8px; font-size: .875rem; font-weight: 500; transition: all .12s; }
+  .view-btn.active { background: var(--ink); color: #fff; }
+  .view-btn:not(.active) { background: transparent; color: #52525b; }
+  .view-btn:not(.active):hover { background: rgba(0,0,0,.04); }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  .stat-ring { background: conic-gradient(var(--accent) var(--pct), #e4e4e7 0); }
+  input, select, textarea { font-family: inherit; }
+  .map-nav { display: inline-flex; gap: .25rem; background: rgba(0,0,0,.04); padding: .25rem; border-radius: 12px; }
+  .map-nav a { padding: .375rem .875rem; border-radius: 8px; font-size: .8rem; font-weight: 500; color: #52525b; text-decoration: none; transition: all .12s; display: inline-flex; align-items: center; gap: .375rem; }
+  .map-nav a.active { background: #1a1a2e; color: white; }
+  .map-nav a:not(.active):hover { background: rgba(255,255,255,.7); color: #1a1a2e; }
+  .flow-node { border: 1px solid var(--wire); background: #fff; padding: .75rem 1rem; border-radius: 10px; position: relative; }
+  .flow-arrow { width: 2px; background: var(--wire); margin: 0 auto; }
+  .flow-arrow::after { content: '▼'; position: absolute; color: var(--wire); left: 50%; transform: translateX(-50%); top: -8px; font-size: .75rem; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<header class="border-b border-stone-200 bg-stone-50/60 backdrop-blur-sm sticky top-0 z-20">
+  <div class="max-w-7xl mx-auto px-6 py-4">
+    <div class="flex items-start justify-between gap-6 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Miso's Logic Map</h1>
+        <p class="text-sm text-stone-600 mt-0.5">Paul's Rule Book · extracted from the S96 Logic Interview</p>
+        <nav class="map-nav mt-3">
+          <a href="/via/logic-map" class="active">Logic Map</a>
+          <a href="/via/nested">Nested Logic</a>
+          <a href="/via/gates">Quick Gates</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <nav class="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+          <button class="view-btn active" data-view="cards">Cards</button>
+          <button class="view-btn" data-view="sentences">Sentences</button>
+          <button class="view-btn" data-view="flow">Flow</button>
+          <button class="view-btn" data-view="stats">Stats</button>
+        </nav>
+        <button onclick="addRule()" class="px-3 py-1.5 bg-stone-900 text-white text-sm rounded-lg hover:bg-stone-800">+ Rule</button>
+        <button onclick="exportJSON()" class="px-3 py-1.5 border border-stone-300 text-sm rounded-lg hover:bg-white">Export</button>
+        <label class="px-3 py-1.5 border border-stone-300 text-sm rounded-lg hover:bg-white cursor-pointer">
+          Import
+          <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Primary goal banner -->
+    <div class="mt-4 p-4 bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-200 rounded-xl flex items-center gap-4">
+      <div class="text-2xl">⚑</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-semibold uppercase tracking-wider text-amber-700">Top of the pyramid · Primary goal</div>
+        <div class="font-semibold mt-0.5">Always fill the NEXT grooming day before optimizing elsewhere.</div>
+        <div class="text-sm text-stone-600 mt-0.5 italic">"We don't get a chance to get that time back, so if I'm not fully booked today, or tomorrow, that is lost revenue I never get a chance to get back." — Paul, Q4 Scheduling</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="mt-4 flex items-center gap-2 flex-wrap text-sm">
+      <input id="search" placeholder="Search rules (name, quote, tags)…" class="flex-1 min-w-[240px] px-3 py-1.5 border border-stone-300 rounded-lg bg-white" oninput="render()" />
+      <select id="filter-cat" onchange="render()" class="px-3 py-1.5 border border-stone-300 rounded-lg bg-white">
+        <option value="">All categories</option>
+        <option value="scheduling">Scheduling</option>
+        <option value="mobile">Mobile</option>
+        <option value="duration">Duration</option>
+        <option value="pricing">Pricing</option>
+        <option value="operations">Operations</option>
+        <option value="meta">Meta / Principles</option>
+      </select>
+      <select id="filter-strength" onchange="render()" class="px-3 py-1.5 border border-stone-300 rounded-lg bg-white">
+        <option value="">All strengths</option>
+        <option value="hard">Hard (rule)</option>
+        <option value="soft">Soft (hierarchy)</option>
+        <option value="heuristic">Heuristic</option>
+      </select>
+      <span id="rule-count" class="text-stone-500 font-mono"></span>
+    </div>
+  </div>
+</header>
+
+<!-- Views -->
+<main class="max-w-7xl mx-auto px-6 py-6">
+  <section id="view-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></section>
+  <section id="view-sentences" class="hidden space-y-3"></section>
+  <section id="view-flow" class="hidden"></section>
+  <section id="view-stats" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6"></section>
+</main>
+
+<!-- Rule editor modal -->
+<dialog id="editor" class="rounded-2xl shadow-2xl p-0 max-w-2xl w-full backdrop:bg-stone-900/50">
+  <form method="dialog" class="bg-white">
+    <header class="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+      <h2 id="editor-title" class="text-lg font-semibold">Edit rule</h2>
+      <button value="cancel" class="text-stone-500 hover:text-stone-900">✕</button>
+    </header>
+    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Name</label>
+        <input id="f-name" type="text" class="w-full px-3 py-2 border border-stone-300 rounded-lg" />
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Category</label>
+          <select id="f-cat" class="w-full px-3 py-2 border border-stone-300 rounded-lg">
+            <option value="scheduling">Scheduling</option>
+            <option value="mobile">Mobile</option>
+            <option value="duration">Duration</option>
+            <option value="pricing">Pricing</option>
+            <option value="operations">Operations</option>
+            <option value="meta">Meta</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Strength</label>
+          <select id="f-strength" class="w-full px-3 py-2 border border-stone-300 rounded-lg">
+            <option value="hard">Hard</option>
+            <option value="soft">Soft</option>
+            <option value="heuristic">Heuristic</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Priority (1=top)</label>
+          <input id="f-priority" type="number" min="1" max="5" value="3" class="w-full px-3 py-2 border border-stone-300 rounded-lg" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">When (conditions)</label>
+        <textarea id="f-when" rows="2" class="w-full px-3 py-2 border border-stone-300 rounded-lg font-mono text-sm" placeholder="One condition per line, e.g. client.tag = SOLO"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Then (outcome)</label>
+        <textarea id="f-then" rows="2" class="w-full px-3 py-2 border border-stone-300 rounded-lg" placeholder="What Miso should do / recommend / flag"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Except when (overrides)</label>
+        <textarea id="f-except" rows="2" class="w-full px-3 py-2 border border-stone-300 rounded-lg" placeholder="Conditions that override this rule"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Source (Q# or section)</label>
+          <input id="f-source" type="text" class="w-full px-3 py-2 border border-stone-300 rounded-lg" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Example client (optional)</label>
+          <input id="f-example" type="text" class="w-full px-3 py-2 border border-stone-300 rounded-lg" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-1">Paul's quote (optional)</label>
+        <textarea id="f-quote" rows="2" class="w-full px-3 py-2 border border-stone-300 rounded-lg italic text-stone-700"></textarea>
+      </div>
+    </div>
+    <footer class="px-6 py-4 border-t border-stone-200 flex items-center justify-between bg-stone-50">
+      <button type="button" id="f-delete" onclick="deleteRule()" class="text-rose-600 text-sm hover:text-rose-800">Delete rule</button>
+      <div class="flex gap-2">
+        <button value="cancel" class="px-3 py-1.5 border border-stone-300 rounded-lg text-sm hover:bg-white">Cancel</button>
+        <button type="button" onclick="saveRule()" class="px-3 py-1.5 bg-stone-900 text-white rounded-lg text-sm hover:bg-stone-800">Save</button>
+      </div>
+    </footer>
+  </form>
+</dialog>
+
+<footer class="border-t border-stone-200 mt-12 py-6 text-center text-sm text-stone-500">
+  Extracted from the <span class="font-mono">Teaching Miso — Logic Interview</span> · Session 96 · 20 April 2026 ·
+  <span class="font-mono">Export JSON</span> to save your edits, <span class="font-mono">Import</span> to reload them.
+</footer>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────────
+// Rules extracted from Paul's interview answers. Each rule carries his quote,
+// a category, a strength (hard/soft/heuristic), priority, and any "except when"
+// links. IDs are stable so overrides can point to them.
+
+const DEFAULT_RULES = [
+  // === META / OPERATING PRINCIPLES ===
+  {
+    id: 'G1', name: 'Primary goal: fill the next grooming day first',
+    category: 'meta', strength: 'hard', priority: 1,
+    when: ['scheduling-decision in progress'],
+    then: 'Before optimizing anything else, ensure the next grooming day is fully booked. Lost days are unrecoverable revenue.',
+    exceptWhen: [],
+    source: 'Q4 Scheduling',
+    example: '',
+    quote: "A really important 'rule' is to always ensure the NEXT grooming day is full. We don't get a chance to get that time back."
+  },
+  {
+    id: 'G2', name: 'Tightly pack the schedule for efficiency',
+    category: 'meta', strength: 'soft', priority: 1,
+    when: ['any booking decision'],
+    then: 'Prefer arrangements that minimize idle groomer time and maximize throughput.',
+    exceptWhen: ['A specific rule (e.g. SOLO block) requires protected time'],
+    source: 'Q4 Scheduling',
+    example: '',
+    quote: "If we are looking for a goal here overall, it's to be able to tightly pack my (and other groomers) schedule in a way that maximizes efficiency."
+  },
+  {
+    id: 'G3', name: 'Client notes trump tag inferences — always read notes first',
+    category: 'meta', strength: 'hard', priority: 1,
+    when: ['any scheduling or duration decision'],
+    then: 'Read the specific client/pet notes. Apply what is written there above any generic rule derived from tags.',
+    exceptWhen: [],
+    source: 'Q1 Scheduling, Q8 Duration',
+    example: 'Heather & Benji (Maine Coons, 18-month gap, notes said owners were brushing — turned out fine despite tag-based expectation of severe matting)',
+    quote: "SPECIFIC notes you read tend to always trump interferences we can make about the scale of any given groom."
+  },
+  {
+    id: 'G4', name: 'Never make non-standard decisions on Paul\'s behalf — flag to him',
+    category: 'meta', strength: 'hard', priority: 1,
+    when: ['request falls outside normal operating parameters'],
+    then: 'Do NOT auto-decide. Tell the client you will consult with Paul first. Surface the request to Paul with context.',
+    exceptWhen: [],
+    source: 'Q10 Scheduling',
+    example: '',
+    quote: "I don't want you to be making those decisions on my behalf. If it's a sticking point, let the client know you'll consult with me first."
+  },
+
+  // === SCHEDULING ===
+  {
+    id: 'S1', name: 'SOLO cats default to first or last slot',
+    category: 'scheduling', strength: 'soft', priority: 2,
+    when: ['client.tag contains SOLO', 'scheduling a new appointment'],
+    then: 'Prefer the first (8:30) or last appointment of the day. Enables a groomer to start later or finish earlier — labour cost optimization.',
+    exceptWhen: ['Notes specify a different time'],
+    source: 'Q2 Scheduling',
+    example: '',
+    quote: "I would rather see them for the first or the last appointment of the day, this will, in theory, mean I can better manage my labour costs."
+  },
+  {
+    id: 'S2', name: 'GABA cats: 8:30 / 9:30 / 11:00am all viable — notes decide',
+    category: 'scheduling', strength: 'soft', priority: 2,
+    when: ['pet.tag contains GABA'],
+    then: 'Permit any of 8:30, 9:30, 11:00. Read notes: if "must be morning / early start" is written, that specific instruction takes precedence over GABA being flexible.',
+    exceptWhen: ['Specific start-time note on the client file'],
+    source: 'Q1 Scheduling',
+    example: 'Some clients have GABA but are not early-morning strict; some are.',
+    quote: "Gaba cats can also be seen at 9:30 and in some cases 11:00am whilst Gaba is an important piece of information, reading notes that specify an early start time are more important."
+  },
+  {
+    id: 'S3', name: 'No Saturday bookings for new clients',
+    category: 'scheduling', strength: 'soft', priority: 2,
+    when: ['client.type = new', 'requested_day = Saturday'],
+    then: 'Default to NO. Saturdays are protected for existing clients.',
+    exceptWhen: [
+      'Not fully booked 1–2 days out — can offer as overflow',
+      'New client can ONLY do Saturdays — offer first/last slot in ~5 weeks time, frame as "my first availability"'
+    ],
+    source: 'Q5 Scheduling',
+    example: '',
+    quote: "They are coveted spots and so I like to 'protect' Saturday spots for my good existing clients."
+  },
+  {
+    id: 'S4', name: 'New clients get a 2-hour SOLO block — no other cats present',
+    category: 'scheduling', strength: 'hard', priority: 2,
+    when: ['appointment.is_first_visit = true'],
+    then: 'Block 2 hours. No other cats scheduled in parallel. This is an investment in retention — the cost is accepted.',
+    exceptWhen: [],
+    source: 'Q4 Scheduling, Q5 Pricing',
+    example: '',
+    quote: "I WANT the opportunity to take my time with a cat who is experiencing all these new stimuli for the first time. I guess I see this as a bit of an investment in new clients."
+  },
+  {
+    id: 'S5', name: 'Day preference beats time preference',
+    category: 'scheduling', strength: 'soft', priority: 3,
+    when: ['booking a returning client with no specific time note'],
+    then: 'Secure the right DAY first; be flexible on time within the day. Match client\'s usual time only if easy.',
+    exceptWhen: ['Client has an explicit time preference in notes'],
+    source: 'Q6 Scheduling',
+    example: '',
+    quote: "I'd rather secure the appointment at a 'not technically perfect' start time because the DAY works."
+  },
+  {
+    id: 'S6', name: 'Peak-hour avoidance uses client drive time',
+    category: 'scheduling', strength: 'soft', priority: 3,
+    when: ['choosing a start time for a client'],
+    then: [
+      'IF drive_time > 20 min: do NOT offer 8:30 slot.',
+      'IF drive_time < 15 min: this client is a strong candidate for the first (8:30) or last slot of the day.'
+    ].join(' '),
+    exceptWhen: [],
+    source: 'Q6 Scheduling',
+    example: '',
+    quote: "Clients who travel more than 20 minutes to get to me should probably not be offered the 8:30am start time. That's peak hour. But someone who lives within 15 minutes of me, that's a great candidate for offering the first or last appointment of the day."
+  },
+  {
+    id: 'S7', name: 'Existing client requests a non-operating day → decline',
+    category: 'scheduling', strength: 'hard', priority: 2,
+    when: ['requested_day is not in Paul\'s operating days'],
+    then: 'Decline. Days off are protected.',
+    exceptWhen: ['Client notes explicitly say exception allowed'],
+    source: 'Q15 Scheduling',
+    example: '',
+    quote: "Assuming there were no notes on the client file that indicate I WOULD make an exception, we don't make an exception. My days off need to be protected."
+  },
+  {
+    id: 'S8', name: 'Work by slots — fill the day first',
+    category: 'scheduling', strength: 'soft', priority: 3,
+    when: ['day-structure decision'],
+    then: 'Think in terms of filling existing slots rather than designing around individual cats. Assistant is present — slot-filling is the primary logic.',
+    exceptWhen: ['A protected block is required (SOLO, NEW)'],
+    source: 'Q8 Scheduling',
+    example: '',
+    quote: "I work by slots. I have an assistant. Thinking in terms of just 'filling the slots' is my strong preference here."
+  },
+  {
+    id: 'S9', name: 'Flag finishes past 5pm as a scheduling concern',
+    category: 'scheduling', strength: 'heuristic', priority: 4,
+    when: ['projected day end > 17:00'],
+    then: 'Surface this in the morning review / scheduling preview. Paul prefers not to run past 5pm.',
+    exceptWhen: [],
+    source: 'Q9 Scheduling',
+    example: '',
+    quote: "If it's likely I'll be working past 5pm, flag that too."
+  },
+  {
+    id: 'S10', name: 'Two back-to-back new clients = reduced total capacity that day',
+    category: 'scheduling', strength: 'hard', priority: 2,
+    when: ['two or more SOLO/NEW blocks stacked on the same day'],
+    then: 'Reduce expected max cats for the day. Do NOT try to pack the normal maximum — SOLO protocols are in effect.',
+    exceptWhen: [],
+    source: 'Q9 Scheduling',
+    example: '',
+    quote: "If we have back to back new clients (2 hours each) that would be an example of doing fewer than the theoretical maximum number of cats that day."
+  },
+  {
+    id: 'S11', name: 'Public holiday midweek: pre-block before the date; if moves needed, offer clients the choice',
+    category: 'scheduling', strength: 'hard', priority: 3,
+    when: ['public holiday is approaching'],
+    then: 'Block the date on the calendar well in advance. If rescheduling is needed, offer clients a choice — don\'t auto-move.',
+    exceptWhen: ['Off-season with flexibility — may proactively offer earlier dates to maintain "always fully booked" principle'],
+    source: 'Q14 Scheduling',
+    example: '',
+    quote: "If I've done my job right, we will have blocked that date off before taking bookings."
+  },
+  {
+    id: 'S12', name: 'Long-overtime cats may warrant the next-day "delayed arrival" text',
+    category: 'scheduling', strength: 'soft', priority: 4,
+    when: ['morning review shows >X minutes of projected overrun from specific appointments'],
+    then: 'Send the standard "please arrive 15–30 min later" text to following clients. ~Once a fortnight cadence.',
+    exceptWhen: [],
+    source: 'Q8 Scheduling',
+    example: '',
+    quote: "You could flag a scenario where the notes indicate I'll likely be going over time, and that morning, we can send a text (probably we will do this once a fortnight) to ask clients to arrive a bit later if we need."
+  },
+
+  // === MOBILE (scheduling's sibling) ===
+  {
+    id: 'M1', name: 'Mobile day first appointment around 9:30am',
+    category: 'mobile', strength: 'soft', priority: 3,
+    when: ['mobile day, first booking of the day'],
+    then: 'Target 9:30am start (sometimes 9:00). Avoids worst of peak hour outbound.',
+    exceptWhen: [],
+    source: 'Q12 Scheduling',
+    example: '',
+    quote: "My first appointment is typically at 9:30am, sometimes 9am, and this is also to help avoid peak hour."
+  },
+  {
+    id: 'M2', name: 'Last mobile appointment should be close to home',
+    category: 'mobile', strength: 'soft', priority: 3,
+    when: ['mobile day, final booking of the day'],
+    then: 'Sequence the day so the final stop is geographically close to Paul\'s home/base. Avoids peak-hour return drive.',
+    exceptWhen: [],
+    source: 'Q12 Scheduling',
+    example: '',
+    quote: "I do like to have my last mobile groom of the day to be reasonably close to home. It helps with peak hour traffic."
+  },
+  {
+    id: 'M3', name: 'Stay within a geographic "anchor"',
+    category: 'mobile', strength: 'soft', priority: 3,
+    when: ['sequencing a mobile day'],
+    then: 'Pick one or two anchor suburbs for the day. Rule OUT clients too far from the anchor. Don\'t leave a region for more than 1–2 weeks.',
+    exceptWhen: ['Client flexibility is limited and the booking is high-value'],
+    source: 'Q12 Scheduling',
+    example: '',
+    quote: "I tend to think in terms of 'anchors'. So when there is an anchor, I tend to stay AROUND that. It is used to rule OUT clients who are too far away for that day."
+  },
+  {
+    id: 'M4', name: 'Max drive between mobile stops: 30 minutes',
+    category: 'mobile', strength: 'soft', priority: 3,
+    when: ['sequencing two consecutive mobile clients'],
+    then: 'Prefer drive legs ≤ 30 min. Longer legs acceptable occasionally but not as a pattern.',
+    exceptWhen: [],
+    source: 'Q12 Scheduling',
+    example: '',
+    quote: "I really like to make sure I don't have to drive more than 30 minutes between grooms. Sometimes that isn't possible though."
+  },
+  {
+    id: 'M5', name: 'Mobile setup + pack: ~20 minutes per household',
+    category: 'mobile', strength: 'hard', priority: 3,
+    when: ['calculating duration at a mobile stop'],
+    then: 'Add ~20 minutes to the groom duration for setup + pack down. A second cat at the same household does NOT halve this — no passive-drying efficiency on mobile.',
+    exceptWhen: ['Comb clip: add another 10–15 min'],
+    source: 'Q13 Duration',
+    example: 'Kate Russell\'s Caesar + Regina = 3 hours total (2 cats). Lana Popovich = 3.5 hours.',
+    quote: "'Unpack' and 'pack' TYPICALLY takes an in-home mobile groomer up to 20 minutes per household."
+  },
+  {
+    id: 'M6', name: 'Whoever books first gets the best option',
+    category: 'mobile', strength: 'heuristic', priority: 4,
+    when: ['multiple mobile clients competing for the same week'],
+    then: 'First-booked wins preferred slot within the anchor. Acknowledge Paul\'s current model is lightweight (38 mobile clients).',
+    exceptWhen: [],
+    source: 'Q12 Scheduling',
+    example: '',
+    quote: "Whoever books in first tends to get the best option."
+  },
+
+  // === DURATION ===
+  {
+    id: 'D1', name: 'Base FCG block: 120 min working, ~180 min quoted (with passive drying)',
+    category: 'duration', strength: 'heuristic', priority: 2,
+    when: ['booking a standard adult FCG'],
+    then: 'Block duration: ~3 hours quoted to client. Actual working time: ~120 min active, with up to 60 min of passive drying overlap with the next cat.',
+    exceptWhen: ['Specific duration note in file'],
+    source: 'Q1 Duration',
+    example: '',
+    quote: "Under ordinary circumstances, I typically quote AROUND 3 hours to groom a cat."
+  },
+  {
+    id: 'D2', name: 'Passive drying is the key overlap window — up to ~60 min',
+    category: 'duration', strength: 'hard', priority: 1,
+    when: ['cat is in the drying box, post-bath'],
+    then: 'Paul can switch to another cat during passive drying. This overlap is HOW days stay on schedule. Miso must model this explicitly — it\'s not slack, it\'s planned parallelism.',
+    exceptWhen: ['Mobile grooming — no passive drying available'],
+    source: 'Q1 Duration',
+    example: '',
+    quote: "HERE IS THE GOLD FOR YOU... PASSIVE DRYING or ACTIVE DRYING... This is how I basically keep a good schedule MOST of the time."
+  },
+  {
+    id: 'D3', name: 'Pre-30-min pickup text fires when cat is "nearly dry"',
+    category: 'duration', strength: 'hard', priority: 3,
+    when: ['post-drying phase, final shave/brush starting'],
+    then: 'Send the 30-min pickup-ready SMS. This is the trigger point, NOT a clock-based timer.',
+    exceptWhen: [],
+    source: 'Q1 Duration',
+    example: '',
+    quote: "When the cat is 'nearly dry' that is typically when I send the 30 minute pickup text to the client."
+  },
+  {
+    id: 'D4', name: 'DSH / Siamese wash-only: 50 min actual, schedule accordingly',
+    category: 'duration', strength: 'heuristic', priority: 3,
+    when: ['booking a short-hair wash-only'],
+    then: 'Base block: 50 min. These are uncommon for Paul — most cats are long/double-coat.',
+    exceptWhen: [],
+    source: 'Q2 Duration',
+    example: '',
+    quote: "I can do a full groom on a Siamese cat in probably 50 minutes."
+  },
+  {
+    id: 'D5', name: 'Kitten wash: 50 min actual, 90 min block',
+    category: 'duration', strength: 'heuristic', priority: 3,
+    when: ['booking a kitten wash'],
+    then: 'Block 90 min. Most of the time actual work is 50 min, but kittens are almost always new clients — use the extra time for owner rapport.',
+    exceptWhen: [],
+    source: 'Q4 Duration',
+    example: '',
+    quote: "Kittens I can USUALLY do in 50 minutes, but I like to allow 90 minutes... I am pretty good at getting along with clients, chatting to them, educating them and retaining them as good clients."
+  },
+  {
+    id: 'D6', name: 'Kitten eligibility: 3–6 months, plus post-desex wait',
+    category: 'duration', strength: 'hard', priority: 2,
+    when: ['booking flagged as "kitten"'],
+    then: [
+      'Minimum age: 11 weeks (hard floor).',
+      'Standard kitten window: 3–6 months.',
+      'After desexing: wait 2 weeks (male), 3 weeks (female) before grooming.',
+      'Always ask: has the cat been desexed? When?'
+    ].join(' '),
+    exceptWhen: [],
+    source: 'Q4 Duration',
+    example: '',
+    quote: "We need to wait 2 weeks after a MALE has been desexed before we can groom them, and 3 weeks for a FEMALE."
+  },
+  {
+    id: 'D7', name: 'Long-hair (Persian, Maine Coon, Ragdoll): longer drying, not longer groom',
+    category: 'duration', strength: 'heuristic', priority: 3,
+    when: ['pet.breed in [Persian, Maine Coon, Ragdoll] OR pet.coat = long'],
+    then: 'Add to the DRYING phase specifically — up to 90 min. Total block stays in the 2h work / 3h quoted range, but expect individual cat timing to stretch.',
+    exceptWhen: [],
+    source: 'Q3 Duration',
+    example: 'Persians with gunky faces, Maine Coons back-to-back comb clips = "shit this is going to be a tough day"',
+    quote: "Maine Coons and Persians can take longer to dry."
+  },
+  {
+    id: 'D8', name: 'Matting tiers: none/mild = no time add · moderate = +20-30 min · severe = +2h, drop bath',
+    category: 'duration', strength: 'heuristic', priority: 2,
+    when: ['matting observed during groom'],
+    then: [
+      'Mild (spots, brushable): no duration impact.',
+      'Moderate (partial shave): +20–30 min.',
+      'Severe / pelt: 2+ hours of just shaving — DROP the bath to protect cat welfare and schedule.'
+    ].join(' '),
+    exceptWhen: [],
+    source: 'Q10–Q12 Duration',
+    example: '',
+    quote: "It can easily take me 2+ hours just to shave a badly matted cat. So yeah, I drop the bath to keep good time and ensure I don't ask too much of the cat."
+  },
+  {
+    id: 'D9', name: 'Gap since last visit does NOT automatically pad duration — read notes',
+    category: 'duration', strength: 'soft', priority: 3,
+    when: ['returning client after 3m / 6m / 12m+ gap'],
+    then: 'Do not auto-pad duration. Read notes. If matting is bad AND cat is cooperative, may split over 2 sessions — but this is usually a mid-groom decision.',
+    exceptWhen: [],
+    source: 'Q9 Duration',
+    example: 'Heather & Benji (Maine Coons, 18-month gap, owners started brushing well — no matting surprise).',
+    quote: "Specific notes you read tend to always trump interferences we can make about the scale of any given groom."
+  },
+  {
+    id: 'D10', name: 'SOLO cats often have a specific duration note — trust it',
+    category: 'duration', strength: 'soft', priority: 2,
+    when: ['client.tag contains SOLO'],
+    then: 'Default: budget the full 2h block. If the note says "60 minutes" (or any specific duration), trust the note.',
+    exceptWhen: [],
+    source: 'Q6 Duration',
+    example: '',
+    quote: "Many solo cats I'll have notes that say '60 minutes'. It's a case by case basis, and if I do a good job of feeding you with the right notes, then it can be taken as reliable guidance."
+  },
+  {
+    id: 'D11', name: 'Geriatric cats: still budget 2h, watch cat\'s energy, stop when it flattens',
+    category: 'duration', strength: 'soft', priority: 3,
+    when: ['pet.tag contains GERIATRIC'],
+    then: 'Default 2h block. Watch for energy flattening — that\'s the stop signal. May skip bath if mat removal is the priority.',
+    exceptWhen: ['Frail geriatric → owner present (SOLO-like), for groomer peace-of-mind as much as cat welfare'],
+    source: 'Q8 Duration',
+    example: '',
+    quote: "I am really perceptive and I'm highly attuned to when the cat's energy flattens. When I see this, I stop."
+  },
+  {
+    id: 'D12', name: 'Groomer speed is a function of the cat, not the clock',
+    category: 'duration', strength: 'hard', priority: 2,
+    when: ['any duration estimate'],
+    then: 'Miso should not pressure a faster groom. Careful mode is the default; fast mode only when the cat allows it.',
+    exceptWhen: [],
+    source: 'Q14 Duration',
+    example: '',
+    quote: "I'm always CAREFUL but sometimes I need to be very careful... I can get a cat shaved, washed, dried and 'finished' in 65 minutes... but I don't often optimize for that."
+  },
+  {
+    id: 'D13', name: 'Abort groom → 15 min for owner call + options discussion',
+    category: 'duration', strength: 'hard', priority: 3,
+    when: ['groom-in-progress must stop early (cat stress)'],
+    then: 'Call or text the owner. Allow ~15 min to discuss options and next steps. This is a planned contingency, not slack.',
+    exceptWhen: [],
+    source: 'Q15 Duration',
+    example: 'Henry the Maine Coon — ~8 of ~7000 grooms unsolvable.',
+    quote: "If I need to stop a groom, I stop it, and I text or CALL the owner... Then I take time discussing the options with them, that's probably 15 minutes."
+  },
+
+  // === PRICING ===
+  {
+    id: 'P1', name: 'Price card: FCG $200 · DSH wash $155 · kitten wash $88 · call-out $55',
+    category: 'pricing', strength: 'hard', priority: 2,
+    when: ['generating invoice / displaying internal price'],
+    then: 'Standard rate card as above. Online booking does NOT display prices — all discretionary until checkout.',
+    exceptWhen: ['Grandfathered legacy prices for specific clients (see P6)'],
+    source: 'Q1–Q2, Q8, Q11 Pricing',
+    example: '',
+    quote: "But when clients book online, they don't see prices. It's my discretion."
+  },
+  {
+    id: 'P2', name: 'Cancellation fee: $55 · New-client no-show: $255 rebook',
+    category: 'pricing', strength: 'hard', priority: 2,
+    when: ['client cancels late / no-shows'],
+    then: 'Standard: $55. New client no-show: $55 fee + $200 upfront for next booking = $255 total. Paul\'s permission required before sending any cancellation-fee comm.',
+    exceptWhen: ['Legacy client with good-faith apology / reason — may waive at discretion (see P7)'],
+    source: 'Q13–Q14 Pricing',
+    example: '',
+    quote: "You'll always need to get my permission to send a cancellation request. This is fraught with risk if I don't handle it right."
+  },
+  {
+    id: 'P3', name: 'Matting charge: applied post-groom via manual edit, not a pre-priced surcharge',
+    category: 'pricing', strength: 'hard', priority: 3,
+    when: ['matting present on a groom'],
+    then: 'Charge is Paul\'s call, based on: client\'s genuine effort / quality + quantity / location of matting (armpits + back legs priced higher). Entered as a manual line item after the groom.',
+    exceptWhen: [],
+    source: 'Q3–Q4 Pricing',
+    example: '',
+    quote: "I have a bit of a matrix in my head and I believe it's logically consistent."
+  },
+  {
+    id: 'P4', name: 'Aborted groom: charge for work done (~$50 typical) or nothing',
+    category: 'pricing', strength: 'soft', priority: 4,
+    when: ['groom aborted early due to cat stress'],
+    then: 'If tangible work was done: ~$50. Often: nothing. Paul\'s discretion — depends on client relationship and what was delivered.',
+    exceptWhen: [],
+    source: 'Q10 Pricing',
+    example: '',
+    quote: "If tangible work was done, I charge for what was done. Typically $50. Often I don't charge anything. It all depends."
+  },
+  {
+    id: 'P5', name: 'New client price = standard price — no uplift despite extra time',
+    category: 'pricing', strength: 'hard', priority: 3,
+    when: ['first-time groom for a new client'],
+    then: 'Charge the standard FCG/DSH rate. The 2h SOLO block is absorbed as retention investment.',
+    exceptWhen: [],
+    source: 'Q9 Pricing',
+    example: '',
+    quote: "I do miss out on higher income because I dedicate exclusive time to a new client, but I think it's better to retain clients than constantly find new ones."
+  },
+  {
+    id: 'P6', name: 'Legacy grandfathered prices (small set)',
+    category: 'pricing', strength: 'hard', priority: 3,
+    when: ['client is on the grandfathered list'],
+    then: 'Apply the older price. No client currently holds a 2022-era price — price has risen 4–5 times since.',
+    exceptWhen: [],
+    source: 'Q7 Pricing',
+    example: 'Jane / Pumpkin',
+    quote: "Jane (Pumpkin) probably gets the best prices of all my clients."
+  },
+  {
+    id: 'P7', name: 'Matting surcharge waiver — only for genuine effort + mild matting',
+    category: 'pricing', strength: 'soft', priority: 4,
+    when: ['considering waiving a matting charge'],
+    then: 'Waive ONLY when (a) the matting is mild, AND (b) the owner shows good-faith effort (e.g. improved frequency, better brushing). Do not listen to sob stories.',
+    exceptWhen: [],
+    source: 'Q6 Pricing',
+    example: '',
+    quote: "If I see the owner is making a good faith effort, I take that into account. It would have to be mild matting though. I tend to not listen to sob stories though."
+  },
+
+  // === OPERATIONS ===
+  {
+    id: 'O1', name: 'Daily capacity: 8 cats/day (2 groomers), 9 during training',
+    category: 'operations', strength: 'hard', priority: 2,
+    when: ['projecting max cats per day'],
+    then: 'Current cap: 9 (while Erin/Lauren in training). Default 2-person cap: 8. Paul may absorb additional load if a groomer is "OK but not 100%".',
+    exceptWhen: ['SOLO blocks stacked → reduce cap (see S10)'],
+    source: 'Q13 Scheduling',
+    example: '',
+    quote: "Between the 2 of us, we may cap the total number of cats to 8 (I think it's currently capped at 9 while we are still training Erin and Lauren."
+  },
+  {
+    id: 'O2', name: 'Sick-groomer return: reduced capacity + ask Paul',
+    category: 'operations', strength: 'soft', priority: 3,
+    when: ['a groomer is returning from illness'],
+    then: 'Reduce max cats for the first day back. Consider no-SOLO for day 1. Ask follow-up questions of Paul — case-by-case.',
+    exceptWhen: [],
+    source: 'Q13 Scheduling',
+    example: '',
+    quote: "Sometimes, depending on the circumstances, we may need to ease them back into it. It's requires a case by case approach I suspect."
+  },
+  {
+    id: 'O3', name: '"Fuckwit filter" — no-shows + no accountability = quietly disengage',
+    category: 'operations', strength: 'hard', priority: 3,
+    when: ['client repeatedly no-shows AND shows no accountability'],
+    then: 'Send the $55 fee request (with Paul\'s permission). If no reply, disengage. Do not chase. Sometimes offer to waive the $255 rebook and take only the $55 — it\'s a filter: reliable clients respond, unreliable ones ghost.',
+    exceptWhen: ['Client makes genuine, good-faith apology — listen'],
+    source: 'Q13 Pricing',
+    example: '',
+    quote: "Sometimes I offer to waive the need to pay $255 to rebook and just insist on the $55 for the missed appointment. Often they won't reply and that's great."
+  },
+  {
+    id: 'O4', name: 'Days off are protected',
+    category: 'operations', strength: 'hard', priority: 2,
+    when: ['request to book on a non-operating day'],
+    then: 'Decline by default, especially during peak season. See S7.',
+    exceptWhen: [],
+    source: 'Q15 Scheduling',
+    example: '',
+    quote: "My days off need to be protected. This is especially important during peak season."
+  },
+];
+
+// Seed compound exceptions on rules by ID
+const ruleIndex = Object.fromEntries(DEFAULT_RULES.map(r => [r.id, r]));
+
+// ─── State ──────────────────────────────────────────────────────────────────
+let state = {
+  rules: JSON.parse(JSON.stringify(DEFAULT_RULES)),
+  view: 'cards',
+  editingId: null,
+};
+
+// ─── View switching ─────────────────────────────────────────────────────────
+document.querySelectorAll('[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.view = btn.dataset.view;
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b === btn));
+    ['cards','sentences','flow','stats'].forEach(v => {
+      document.getElementById('view-' + v).classList.toggle('hidden', v !== state.view);
+    });
+    render();
+  });
+});
+
+// ─── Filter / search ────────────────────────────────────────────────────────
+function getFilteredRules() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('filter-cat').value;
+  const str = document.getElementById('filter-strength').value;
+  return state.rules.filter(r => {
+    if (cat && r.category !== cat) return false;
+    if (str && r.strength !== str) return false;
+    if (q) {
+      const hay = [r.name, r.id, r.source, r.quote, r.example, r.then, (r.when||[]).join(' '), (r.exceptWhen||[]).join(' ')]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const rules = getFilteredRules();
+  document.getElementById('rule-count').textContent = `${rules.length} / ${state.rules.length} rules`;
+  if (state.view === 'cards') renderCards(rules);
+  else if (state.view === 'sentences') renderSentences(rules);
+  else if (state.view === 'flow') renderFlow(rules);
+  else if (state.view === 'stats') renderStats(rules);
+}
+
+function renderCards(rules) {
+  const container = document.getElementById('view-cards');
+  if (rules.length === 0) {
+    container.innerHTML = `<div class="col-span-full text-center py-16 text-stone-500">No rules match the current filter.</div>`;
+    return;
+  }
+  container.innerHTML = rules.map(r => {
+    const whenList = Array.isArray(r.when) ? r.when : [r.when];
+    const exceptList = Array.isArray(r.exceptWhen) ? r.exceptWhen : (r.exceptWhen ? [r.exceptWhen] : []);
+    const priorityDots = [1,2,3,4,5].map(p => `<span class="dot ${p <= (6 - r.priority) ? 'dot-filled' : 'dot-empty'}"></span>`).join('');
+    return `
+      <article class="rule-card cat-${r.category} accent-border bg-white rounded-xl p-5 cursor-pointer" onclick="editRule('${r.id}')">
+        <header class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill">${r.id}</span>
+            <span class="chip chip-${r.strength}">${r.strength}</span>
+          </div>
+          <div class="flex items-center gap-0.5" title="Priority ${r.priority} (1=top)">
+            ${priorityDots}
+          </div>
+        </header>
+        <h3 class="font-semibold text-base leading-snug mb-2">${escapeHtml(r.name)}</h3>
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-1">When</div>
+        <div class="text-sm mb-2 space-y-1">
+          ${whenList.map(w => `<div class="flex gap-1.5"><span class="text-stone-400">·</span><span>${escapeHtml(w)}</span></div>`).join('')}
+        </div>
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-1 mt-3">Then</div>
+        <div class="then-block text-sm">${escapeHtml(r.then)}</div>
+        ${exceptList.length ? `
+          <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-1 mt-3">Except when</div>
+          <ul class="text-sm space-y-0.5 text-stone-700">
+            ${exceptList.map(e => `<li class="flex gap-1.5"><span class="text-amber-500">↯</span><span>${escapeHtml(e)}</span></li>`).join('')}
+          </ul>
+        ` : ''}
+        ${r.quote ? `<blockquote class="quote mt-3 text-sm">"${escapeHtml(r.quote)}"</blockquote>` : ''}
+        <footer class="mt-3 pt-2 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
+          <span>${r.source ? 'Source: ' + escapeHtml(r.source) : ''}</span>
+          <span>${r.example ? 'e.g. ' + escapeHtml(r.example) : ''}</span>
+        </footer>
+      </article>
+    `;
+  }).join('');
+}
+
+function renderSentences(rules) {
+  const container = document.getElementById('view-sentences');
+  if (rules.length === 0) {
+    container.innerHTML = `<div class="text-center py-16 text-stone-500">No rules match the current filter.</div>`;
+    return;
+  }
+  // Group by category
+  const grouped = {};
+  rules.forEach(r => { (grouped[r.category] = grouped[r.category] || []).push(r); });
+  const order = ['meta','scheduling','mobile','duration','pricing','operations'];
+  container.innerHTML = order.filter(c => grouped[c]).map(cat => `
+    <section class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <header class="px-5 py-3 border-b border-stone-200 bg-stone-50 flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-full cat-${cat}" style="background: var(--accent);"></span>
+        <h3 class="font-semibold capitalize">${cat}</h3>
+        <span class="text-xs text-stone-500">${grouped[cat].length} rules</span>
+      </header>
+      <ol class="divide-y divide-stone-100">
+        ${grouped[cat].sort((a,b) => a.priority - b.priority).map(r => {
+          const whenList = Array.isArray(r.when) ? r.when : [r.when];
+          const exceptList = Array.isArray(r.exceptWhen) ? r.exceptWhen : (r.exceptWhen ? [r.exceptWhen] : []);
+          return `
+            <li class="px-5 py-3 cursor-pointer hover:bg-stone-50" onclick="editRule('${r.id}')">
+              <div class="flex items-start gap-3">
+                <span class="pill shrink-0 mt-0.5">${r.id}</span>
+                <div class="flex-1 text-sm leading-relaxed">
+                  <span class="font-semibold text-stone-500 text-xs uppercase tracking-wider mr-1">IF</span>
+                  ${escapeHtml(whenList.join(' and '))}
+                  <span class="font-semibold text-stone-500 text-xs uppercase tracking-wider mx-1">THEN</span>
+                  ${escapeHtml(r.then)}
+                  ${exceptList.length ? `<span class="font-semibold text-amber-600 text-xs uppercase tracking-wider mx-1">EXCEPT WHEN</span> ${escapeHtml(exceptList.join(' OR '))}` : ''}
+                </div>
+                <span class="chip chip-${r.strength} shrink-0">${r.strength}</span>
+              </div>
+            </li>
+          `;
+        }).join('')}
+      </ol>
+    </section>
+  `).join('');
+}
+
+function renderFlow(rules) {
+  const container = document.getElementById('view-flow');
+  const byCat = { meta: [], scheduling: [], mobile: [], duration: [], pricing: [], operations: [] };
+  rules.forEach(r => byCat[r.category] && byCat[r.category].push(r));
+  Object.keys(byCat).forEach(k => byCat[k].sort((a,b) => a.priority - b.priority));
+
+  container.innerHTML = `
+    <div class="space-y-6">
+      <!-- Tier 0: Primary goals (meta) -->
+      <div class="relative">
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-2">Tier 0 · Primary goals + operating principles</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${byCat.meta.map(r => flowNode(r)).join('')}
+        </div>
+      </div>
+      <div class="h-6 flow-arrow relative"></div>
+      <!-- Tier 1: High-priority category rules -->
+      <div class="relative">
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-2">Tier 1 · Scheduling + Mobile (priority 2-3)</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${[...byCat.scheduling, ...byCat.mobile].filter(r => r.priority <= 3).map(r => flowNode(r)).join('')}
+        </div>
+      </div>
+      <div class="h-6 flow-arrow relative"></div>
+      <!-- Tier 2: Duration + pricing -->
+      <div class="relative">
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-2">Tier 2 · Duration + Pricing</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${[...byCat.duration, ...byCat.pricing].map(r => flowNode(r)).join('')}
+        </div>
+      </div>
+      <div class="h-6 flow-arrow relative"></div>
+      <!-- Tier 3: Operations + low-priority scheduling -->
+      <div class="relative">
+        <div class="text-xs uppercase tracking-wider font-semibold text-stone-500 mb-2">Tier 3 · Operations + lower-priority rules</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${[...byCat.operations, ...byCat.scheduling.filter(r => r.priority > 3), ...byCat.mobile.filter(r => r.priority > 3)].map(r => flowNode(r)).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function flowNode(r) {
+  return `
+    <div class="flow-node cat-${r.category} cursor-pointer hover:shadow-md" onclick="editRule('${r.id}')">
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <span class="pill">${r.id}</span>
+        <span class="chip chip-${r.strength}">${r.strength}</span>
+      </div>
+      <div class="text-sm font-medium leading-tight">${escapeHtml(r.name)}</div>
+      ${(r.exceptWhen && r.exceptWhen.length) ? `<div class="text-xs text-amber-600 mt-1">↯ ${r.exceptWhen.length} exception${r.exceptWhen.length>1?'s':''}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderStats(rules) {
+  const container = document.getElementById('view-stats');
+  const byCat = {};
+  const byStr = {};
+  rules.forEach(r => { byCat[r.category] = (byCat[r.category]||0)+1; byStr[r.strength] = (byStr[r.strength]||0)+1; });
+  const total = rules.length;
+  const withExc = rules.filter(r => r.exceptWhen && r.exceptWhen.length).length;
+
+  container.innerHTML = `
+    <div class="bg-white rounded-xl border border-stone-200 p-6">
+      <h3 class="font-semibold mb-4">By category</h3>
+      <div class="space-y-2">
+        ${['meta','scheduling','mobile','duration','pricing','operations'].filter(c => byCat[c]).map(c => {
+          const pct = Math.round((byCat[c]/total)*100);
+          return `
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-sm capitalize">${c}</span>
+              <div class="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
+                <div class="h-full cat-${c} flex items-center px-2 text-xs text-white font-medium" style="background: var(--accent); width: ${pct}%">${byCat[c]}</div>
+              </div>
+              <span class="text-sm text-stone-500 font-mono w-12 text-right">${pct}%</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-6">
+      <h3 class="font-semibold mb-4">By strength</h3>
+      <div class="space-y-2">
+        ${['hard','soft','heuristic'].filter(s => byStr[s]).map(s => {
+          const pct = Math.round((byStr[s]/total)*100);
+          const col = s==='hard'?'#1a1a2e':(s==='soft'?'#f59e0b':'#6b7280');
+          return `
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-sm capitalize">${s}</span>
+              <div class="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
+                <div class="h-full flex items-center px-2 text-xs text-white font-medium" style="background: ${col}; width: ${pct}%">${byStr[s]}</div>
+              </div>
+              <span class="text-sm text-stone-500 font-mono w-12 text-right">${pct}%</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 p-6 md:col-span-2">
+      <h3 class="font-semibold mb-4">Observations</h3>
+      <ul class="space-y-2 text-sm">
+        <li>• <span class="font-mono">${total}</span> rules currently defined. <span class="font-mono">${withExc}</span> have explicit exceptions — these are the most interesting to audit.</li>
+        <li>• Passive drying (<span class="font-mono">D2</span>) is labelled as Paul's scheduling superpower. Every duration estimate should be checked against D2 for overlap opportunities.</li>
+        <li>• "Always fill the next grooming day" (<span class="font-mono">G1</span>) is the one-rule-to-rule-them-all. Most soft exceptions exist to serve it.</li>
+        <li>• Mobile (<span class="font-mono">M1–M6</span>) is a distinct sub-system from salon scheduling — the passive-drying lever doesn't exist there. Duration math is different.</li>
+        <li>• Paul's permission gates: cancellation comms (<span class="font-mono">P2</span>), non-standard time requests (<span class="font-mono">G4</span>), free grooms. Miso never self-approves these.</li>
+      </ul>
+    </div>
+  `;
+}
+
+// ─── Rule editor ────────────────────────────────────────────────────────────
+function addRule() {
+  state.editingId = null;
+  document.getElementById('editor-title').textContent = 'Add rule';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-cat').value = 'scheduling';
+  document.getElementById('f-strength').value = 'soft';
+  document.getElementById('f-priority').value = 3;
+  document.getElementById('f-when').value = '';
+  document.getElementById('f-then').value = '';
+  document.getElementById('f-except').value = '';
+  document.getElementById('f-source').value = '';
+  document.getElementById('f-example').value = '';
+  document.getElementById('f-quote').value = '';
+  document.getElementById('f-delete').style.display = 'none';
+  document.getElementById('editor').showModal();
+}
+
+function editRule(id) {
+  const r = state.rules.find(x => x.id === id);
+  if (!r) return;
+  state.editingId = id;
+  document.getElementById('editor-title').textContent = `Edit · ${id}`;
+  document.getElementById('f-name').value = r.name;
+  document.getElementById('f-cat').value = r.category;
+  document.getElementById('f-strength').value = r.strength;
+  document.getElementById('f-priority').value = r.priority;
+  document.getElementById('f-when').value = (Array.isArray(r.when) ? r.when : [r.when]).join('\n');
+  document.getElementById('f-then').value = r.then;
+  document.getElementById('f-except').value = (Array.isArray(r.exceptWhen) ? r.exceptWhen : (r.exceptWhen ? [r.exceptWhen] : [])).join('\n');
+  document.getElementById('f-source').value = r.source || '';
+  document.getElementById('f-example').value = r.example || '';
+  document.getElementById('f-quote').value = r.quote || '';
+  document.getElementById('f-delete').style.display = '';
+  document.getElementById('editor').showModal();
+}
+
+function saveRule() {
+  const data = {
+    name: document.getElementById('f-name').value.trim(),
+    category: document.getElementById('f-cat').value,
+    strength: document.getElementById('f-strength').value,
+    priority: parseInt(document.getElementById('f-priority').value) || 3,
+    when: document.getElementById('f-when').value.split('\n').map(s => s.trim()).filter(Boolean),
+    then: document.getElementById('f-then').value.trim(),
+    exceptWhen: document.getElementById('f-except').value.split('\n').map(s => s.trim()).filter(Boolean),
+    source: document.getElementById('f-source').value.trim(),
+    example: document.getElementById('f-example').value.trim(),
+    quote: document.getElementById('f-quote').value.trim(),
+  };
+  if (!data.name) { alert('Rule needs a name.'); return; }
+
+  if (state.editingId) {
+    const idx = state.rules.findIndex(r => r.id === state.editingId);
+    state.rules[idx] = { ...state.rules[idx], ...data };
+  } else {
+    // Generate new ID
+    const prefix = { scheduling:'S', mobile:'M', duration:'D', pricing:'P', operations:'O', meta:'G' }[data.category];
+    const taken = new Set(state.rules.filter(r => r.id.startsWith(prefix)).map(r => parseInt(r.id.slice(1))));
+    let n = 1; while (taken.has(n)) n++;
+    state.rules.push({ id: prefix + n, ...data });
+  }
+  document.getElementById('editor').close();
+  render();
+}
+
+function deleteRule() {
+  if (!state.editingId) return;
+  if (!confirm(`Delete rule ${state.editingId}?`)) return;
+  state.rules = state.rules.filter(r => r.id !== state.editingId);
+  document.getElementById('editor').close();
+  render();
+}
+
+// ─── Import / Export ────────────────────────────────────────────────────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state.rules, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `miso-rules-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed)) throw new Error('Expected an array of rules.');
+      state.rules = parsed;
+      render();
+      alert(`Imported ${parsed.length} rules.`);
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── Utilities ──────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ─── Init ───────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

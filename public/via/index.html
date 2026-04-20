@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Miso's Rule Book</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="bg-stone-50 min-h-screen">
+  <main class="max-w-4xl mx-auto py-16 px-6">
+    <div class="mb-10">
+      <p class="mono text-xs text-stone-500 uppercase tracking-wider mb-2">Private preview · Via access</p>
+      <h1 class="text-3xl font-bold text-stone-900">Miso's Rule Book</h1>
+      <p class="text-stone-600 mt-2 max-w-2xl">Three views of how Paul makes scheduling, duration, and pricing decisions. Shared for Via.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <a href="/via/logic-map" class="block p-6 bg-white rounded-xl border border-stone-200 hover:shadow-lg hover:border-stone-300 transition-all">
+        <p class="mono text-xs text-stone-400 mb-3">01</p>
+        <h2 class="font-semibold text-stone-900">Logic Map</h2>
+        <p class="text-sm text-stone-600 mt-2 leading-relaxed">Flat searchable list of all rules. 44 entries.</p>
+      </a>
+      <a href="/via/nested" class="block p-6 bg-white rounded-xl border border-stone-200 hover:shadow-lg hover:border-stone-300 transition-all">
+        <p class="mono text-xs text-stone-400 mb-3">02</p>
+        <h2 class="font-semibold text-stone-900">Nested Logic</h2>
+        <p class="text-sm text-stone-600 mt-2 leading-relaxed">Cascading scenarios — how rules stack, override, and except.</p>
+      </a>
+      <a href="/via/gates" class="block p-6 bg-white rounded-xl border border-stone-200 hover:shadow-lg hover:border-stone-300 transition-all">
+        <p class="mono text-xs text-stone-400 mb-3">03</p>
+        <h2 class="font-semibold text-stone-900">Quick Gates</h2>
+        <p class="text-sm text-stone-600 mt-2 leading-relaxed">Shallow 1-2 gate checks — the daily-use filters.</p>
+      </a>
+    </div>
+
+    <form action="/api/via-logout" method="POST" class="mt-16">
+      <button type="submit" class="mono text-xs text-stone-400 hover:text-stone-900 underline">Log out</button>
+    </form>
+  </main>
+</body>
+</html>

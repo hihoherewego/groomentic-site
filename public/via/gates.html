@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Miso's Quick-Gate Logic — Shallow Checks, Fast Resolution</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f8f6f2;
+    --wire: #c9c5bd;
+    --tier-0: #1a1a2e;
+    --tier-1: #3b82f6;
+    --tier-2: #8b5cf6;
+    --tier-3: #d97706;
+    --tier-4: #db2777;
+    --tier-5: #dc2626;
+    --yes: #059669;
+    --no:  #dc2626;
+  }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  .tier-chip {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .125rem .5rem; border-radius: 9999px;
+    color: white; font-size: .65rem; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: .02em;
+  }
+  .tier-0 { background: var(--tier-0); }
+  .tier-1 { background: var(--tier-1); }
+  .tier-2 { background: var(--tier-2); }
+  .tier-3 { background: var(--tier-3); }
+  .tier-gate { background: #52525b; }
+  .tier-out-yes { background: var(--yes); }
+  .tier-out-no { background: var(--no); }
+  .tier-trigger { background: #6b7280; }
+
+  .operator {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: .65rem;
+    padding: .1rem .375rem;
+    border-radius: 4px;
+    background: rgba(0,0,0,.06);
+    color: #52525b;
+    letter-spacing: .02em;
+  }
+  .op-if { background: #dbeafe; color: #1d4ed8; }
+  .op-then { background: #d1fae5; color: #065f46; }
+  .op-check { background: #e0e7ff; color: #4338ca; }
+  .op-yes { background: #d1fae5; color: #065f46; }
+  .op-no { background: #fee2e2; color: #991b1b; }
+  .op-flag { background: #fef3c7; color: #92400e; }
+
+  /* Flow connector — vertical arrow between nodes */
+  .flow-arrow {
+    width: 2px;
+    height: 20px;
+    background: var(--wire);
+    margin: 0 auto;
+    position: relative;
+  }
+  .flow-arrow::after {
+    content: '▼';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--wire);
+    font-size: .625rem;
+  }
+
+  .branch-fork {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+    position: relative;
+  }
+  .branch-fork::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: var(--wire);
+  }
+  .branch-fork > div { position: relative; }
+  .branch-fork > div::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background: var(--wire);
+  }
+
+  .node-box {
+    border: 1px solid var(--wire);
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .node-trigger { border-color: #d4d4d8; background: #fafafa; }
+  .node-gate { border-color: #d1d5db; background: white; }
+  .node-outcome-yes { border-color: #86efac; background: #f0fdf4; }
+  .node-outcome-no  { border-color: #fca5a5; background: #fef2f2; }
+  .node-outcome     { border-color: #a7f3d0; background: #ecfdf5; }
+  .node-flag        { border-color: #fcd34d; background: #fffbeb; }
+
+  .quote {
+    font-style: italic;
+    color: #52525b;
+    border-left: 2px solid var(--wire);
+    padding-left: .625rem;
+    line-height: 1.4;
+    font-size: .75rem;
+  }
+
+  .card-wrap { transition: transform .12s, box-shadow .12s; }
+  .card-wrap:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -8px rgba(0,0,0,.12); }
+
+  .stat-num { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .map-nav { display: inline-flex; gap: .25rem; background: rgba(0,0,0,.04); padding: .25rem; border-radius: 12px; }
+  .map-nav a { padding: .375rem .875rem; border-radius: 8px; font-size: .8rem; font-weight: 500; color: #52525b; text-decoration: none; transition: all .12s; display: inline-flex; align-items: center; gap: .375rem; }
+  .map-nav a.active { background: #1a1a2e; color: white; }
+  .map-nav a:not(.active):hover { background: rgba(255,255,255,.7); color: #1a1a2e; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="border-b border-stone-200 bg-stone-50/60 backdrop-blur-sm">
+  <div class="max-w-7xl mx-auto px-6 py-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Miso's Quick-Gate Logic</h1>
+      <p class="text-sm text-stone-600 mt-1">Shallow checks · fast resolution · one or two gates and done.</p>
+      <nav class="map-nav mt-3">
+        <a href="/via/logic-map">Logic Map</a>
+        <a href="/via/nested">Nested Logic</a>
+        <a href="/via/gates" class="active">Quick Gates</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Intro -->
+<section class="max-w-4xl mx-auto px-6 py-8">
+  <div class="bg-white rounded-xl p-6 border border-stone-200">
+    <h2 class="font-bold text-lg mb-3">Three shapes of decision</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-sm">
+      <div class="p-4 rounded-lg border border-stone-200 bg-stone-50">
+        <div class="font-semibold mb-1">Flat list</div>
+        <div class="text-xs text-stone-600">All rules viewable side by side. Search, filter, edit. See the Logic Map.</div>
+      </div>
+      <div class="p-4 rounded-lg border border-stone-200 bg-stone-50">
+        <div class="font-semibold mb-1">Deep cascade</div>
+        <div class="text-xs text-stone-600">Rules that stack 3–5 tiers deep — principles → rules → exceptions → counter-overrides. See the Nested Logic Map.</div>
+      </div>
+      <div class="p-4 rounded-lg border-2 border-stone-900 bg-white">
+        <div class="font-semibold mb-1">Quick gates <span class="text-xs font-normal text-stone-500">· this page</span></div>
+        <div class="text-xs text-stone-600">One or two yes/no checks that resolve the decision immediately. Most of Miso's daily work lives here.</div>
+      </div>
+    </div>
+    <p class="text-sm text-stone-600 leading-relaxed mt-5">
+      These aren't lesser rules — they're just the ones that don't need a full tree. A kitten-desex check, a peak-hour slot filter, a pickup-text trigger. Miso fires through them dozens of times a day, usually without anyone noticing. <strong>Compared to the deep cascades, these are the ones that should just <em>work</em> and stay out of your way.</strong>
+    </p>
+  </div>
+</section>
+
+<!-- Category groups -->
+<main class="max-w-7xl mx-auto px-6 pb-16 space-y-10" id="categories"></main>
+
+<!-- Stats -->
+<section class="max-w-7xl mx-auto px-6 pb-16">
+  <div class="bg-white rounded-xl border border-stone-200 p-6" id="stats"></div>
+</section>
+
+<footer class="border-t border-stone-200 py-6 text-center text-sm text-stone-500">
+  Extracted from the S96 Logic Interview. Each gate is a candidate implementation target — they're small enough to wire into Miso one at a time.
+</footer>
+
+<script>
+// ─── Data: quick-gate scenarios ─────────────────────────────────────────────
+// Each gate has: trigger → 1-2 gate checks → outcome (sometimes branching)
+
+const GROUPS = [
+  {
+    id: 'booking-eligibility',
+    title: 'Booking eligibility',
+    subtitle: 'Can we book this at all? — answered with one or two checks.',
+    gates: [
+      {
+        id: 'kitten-desex-wait',
+        title: 'Kitten post-desex wait',
+        source: 'Q4 Duration',
+        trigger: 'Someone wants to book a kitten wash.',
+        gates: [
+          { label: 'GATE 1', check: 'Has the kitten been desexed?' },
+          { label: 'GATE 2', check: 'If yes → is the cat male or female? How long ago?' }
+        ],
+        outcomes: [
+          { label: 'MALE + ≥2 weeks post-desex', kind: 'yes', text: 'OK to book — any available slot.' },
+          { label: 'FEMALE + ≥3 weeks post-desex', kind: 'yes', text: 'OK to book — any available slot.' },
+          { label: 'Desexed but wait not yet elapsed', kind: 'flag', text: 'Take the booking — offer a slot AFTER the wait period (2 wk male / 3 wk female). Delay the appointment, not the decision. Invoke cat welfare in the explanation — owners understand.' },
+          { label: 'Not yet desexed', kind: 'flag', text: 'Ask when desexing is scheduled. Offer a slot 2-3 weeks after that date.' }
+        ],
+        quote: 'We need to wait 2 weeks after a MALE has been desexed before we can groom them, and 3 weeks for a FEMALE. So when we book them in, we need to ask if they have been desexed yet, and when that happened.'
+      },
+      {
+        id: 'kitten-age-floor',
+        title: 'Kitten minimum age',
+        source: 'Q4 Duration',
+        trigger: 'Booking a kitten.',
+        gates: [
+          { label: 'GATE', check: 'Is the kitten ≥ 11 weeks old?' }
+        ],
+        outcomes: [
+          { label: 'YES — ≥ 11 weeks now', kind: 'yes', text: 'Eligible. Book any available slot.' },
+          { label: 'NO — still under 11 weeks', kind: 'flag', text: 'Take the booking anyway. Offer a slot AFTER the kitten reaches 11 weeks. Delay the appointment, not the decision.' }
+        ],
+        quote: 'If the cat is 11 weeks old, I\'ll probably see them, but any earlier, they are too young.'
+      },
+      {
+        id: 'non-operating-day',
+        title: 'Existing client requests a non-operating day',
+        source: 'Q15 Scheduling',
+        trigger: 'Client asks for a day Paul doesn\'t normally groom on.',
+        gates: [
+          { label: 'GATE', check: 'Does the client file have an explicit exception note?' }
+        ],
+        outcomes: [
+          { label: 'YES — note permits', kind: 'yes', text: 'Proceed — flag to Paul for confirmation.' },
+          { label: 'NO', kind: 'no', text: 'Decline. Days off are protected.' }
+        ],
+        quote: 'Assuming there were no notes on the client file that indicate I WOULD make an exception, we don\'t make an exception. My days off need to be protected.'
+      }
+    ]
+  },
+  {
+    id: 'duration-adjustments',
+    title: 'Duration adjustments',
+    subtitle: 'Tweak the time budget based on one quick signal.',
+    gates: [
+      {
+        id: 'severe-matting-drop-bath',
+        title: 'Bath was dropped mid-groom — learn from it',
+        source: 'Q12 Duration',
+        trigger: 'Paul has skipped the bath during a groom in progress (observed, not instructed).',
+        gates: [
+          { label: 'GATE', check: 'Is severe matting / pelting the reason?' }
+        ],
+        outcomes: [
+          { label: 'YES — severe matting', kind: 'yes', text: 'Record: no bath performed + matting severity + actual duration spent on shaving. Update pet\'s history so next booking can anticipate similar.' },
+          { label: 'Other reason', kind: 'flag', text: 'Prompt Paul for a one-line note on why, so it can be captured against the pet record. Miso doesn\'t need to decide — just capture.' }
+        ],
+        quote: 'It can easily take me 2+ hours just to shave a badly matted cat. So yeah, I drop the bath to keep good time and ensure I don\'t ask too much of the cat.'
+      },
+      {
+        id: 'solo-specific-duration',
+        title: 'SOLO cat — specific duration note',
+        source: 'Q6 Duration',
+        trigger: 'Booking a SOLO-tagged cat.',
+        gates: [
+          { label: 'GATE 1', check: 'Does the cat have SOLO tag?' },
+          { label: 'GATE 2', check: 'Do the notes specify a duration (e.g. "60 min")?' }
+        ],
+        outcomes: [
+          { label: 'Note specifies duration', kind: 'yes', text: 'Trust the note. Use that duration.' },
+          { label: 'SOLO tag + no specific note', kind: 'flag', text: 'Default to full 2h SOLO block.' },
+          { label: 'Ambiguous (tag unclear, conflicting notes, outdated info)', kind: 'flag', text: 'Ask Paul to clarify whether this cat is SOLO or not — before committing to a block. Better to pause than to guess wrong on a protected slot.' }
+        ],
+        quote: 'Many solo cats I\'ll have notes that say "60 minutes". It\'s a case by case basis, and if I do a good job of feeding you with the right notes, then it can be taken as reliable guidance.'
+      },
+      {
+        id: 'mobile-setup-time',
+        title: 'Mobile groom — setup + pack time',
+        source: 'Q13 Duration',
+        trigger: 'Calculating duration at a mobile stop.',
+        gates: [
+          { label: 'GATE 1', check: 'Is this a mobile booking?' },
+          { label: 'GATE 2', check: 'Is this a comb clip?' }
+        ],
+        outcomes: [
+          { label: 'Mobile + comb clip', kind: 'yes', text: 'Add ~30 min to groom time (20 min setup + 10-15 min comb clip).' },
+          { label: 'Mobile only', kind: 'yes', text: 'Add ~20 min to groom time for setup and pack-down.' },
+          { label: 'Salon (not mobile)', kind: 'flag', text: 'No setup overhead. Passive drying can be used instead.' }
+        ],
+        quote: '"Unpack" and "pack" TYPICALLY takes an in-home mobile groomer up to 20 minutes per household... If I\'m doing a comb clip, that\'s probably an extra 10-15 minutes.'
+      }
+    ]
+  },
+  {
+    id: 'scheduling-checks',
+    title: 'Scheduling checks',
+    subtitle: 'One-gate filters applied when offering slots.',
+    gates: [
+      {
+        id: 'peak-hour-far-client',
+        title: 'Peak-hour filter for distant clients',
+        source: 'Q6 Scheduling · S96 G1 override',
+        trigger: 'About to offer an 8:30am slot.',
+        gates: [
+          { label: 'GATE 1', check: 'Client drive time > 20 minutes?' },
+          { label: 'GATE 2', check: 'If yes → is the slot within the next 1–2 days AND the day is NOT fully booked? (G1 override test)' }
+        ],
+        outcomes: [
+          { label: 'Drive < 20 min', kind: 'yes', text: 'Slot is fair game.' },
+          { label: 'Drive > 20 min · day far out OR already booked', kind: 'no', text: 'Don\'t offer 8:30 to this client. Peak-hour traffic.' },
+          { label: 'Drive > 20 min · G1 OVERRIDE (≤ 2 days, not booked)', kind: 'yes', text: 'OFFER the slot — G1 (fill the next grooming day) beats the courtesy filter. BUT flag to the client as a courtesy: "this slot is during peak-hour traffic — you may encounter heavier traffic on your drive in."' }
+        ],
+        quote: 'Clients who travel more than 20 minutes to get to me should probably not be offered the 8:30am start time. That\'s peak hour.'
+      },
+      {
+        id: 'close-client-first-last',
+        title: 'Close clients get first/last slot',
+        source: 'Q6 Scheduling',
+        trigger: 'Picking a good slot to offer a returning client.',
+        gates: [
+          { label: 'GATE', check: 'Client drive time < 15 minutes?' }
+        ],
+        outcomes: [
+          { label: 'YES', kind: 'yes', text: 'Strong candidate for the first (8:30) OR last slot of the day — no peak-hour issue either direction.' },
+          { label: 'NO', kind: 'flag', text: 'Day > time. Pick a slot that fits the day.' }
+        ],
+        quote: 'Someone who lives within 15 minutes of me, that\'s a great candidate for offering the first or last appointment of the day (heading home in the afternoon, they are likely to face traffic too).'
+      },
+      {
+        id: 'finish-past-5',
+        title: 'Flag days finishing past 5:30pm',
+        source: 'Q9 Scheduling · threshold updated S96',
+        trigger: 'Morning review. Projecting the day.',
+        gates: [
+          { label: 'GATE', check: 'Projected end-of-day > 17:30?' }
+        ],
+        outcomes: [
+          { label: 'YES', kind: 'flag', text: 'Surface this to Paul. He prefers not to run past 5:30pm.' },
+          { label: 'NO', kind: 'yes', text: 'Silent pass.' }
+        ],
+        quote: 'If it\'s likely I\'ll be working past 5pm, flag that too. (Threshold set at 5:30pm in S96 — 5:00 was too early to be concerned about.)'
+      },
+      {
+        id: 'late-arrival-text',
+        title: 'Send "please arrive later" text',
+        source: 'Q8 Scheduling',
+        trigger: 'Morning review. Notes flag likely overrun on an early appointment.',
+        gates: [
+          { label: 'GATE 1', check: 'Is a projected overrun flagged in notes for a current-day appointment?' },
+          { label: 'GATE 2', check: 'Are there clients arriving after who would be affected?' }
+        ],
+        outcomes: [
+          { label: 'Both YES', kind: 'yes', text: 'Draft a "please arrive 15-30 min later" text for affected clients. Paul approves before sending.' },
+          { label: 'Otherwise', kind: 'flag', text: 'No action.' }
+        ],
+        quote: 'You could flag a scenario where the notes indicate I\'ll likely be going over time, and that morning, we can send a text... to ask clients to arrive a bit later if we need.'
+      }
+    ]
+  },
+  {
+    id: 'pricing-and-comms',
+    title: 'Pricing & comms',
+    subtitle: 'Quick money / messaging calls.',
+    gates: [
+      {
+        id: 'pickup-ready-text',
+        title: 'The "30-min pickup" text — observe or execute',
+        source: 'Q1 Duration · observation gate',
+        trigger: 'Paul has sent the pickup-ready text OR Paul has asked Miso to send it.',
+        gates: [
+          { label: 'GATE', check: 'Who is sending — Paul, or Miso on Paul\'s instruction?' }
+        ],
+        outcomes: [
+          { label: 'Paul sent it himself', kind: 'yes', text: 'Observe: record that the 30-min window has started. Use this as the timing signal for the pet\'s next estimate (how long does "nearly dry" → pickup actually take for this cat?).' },
+          { label: 'Paul asked Miso to send', kind: 'yes', text: 'Send the pickup-ready SMS to the client. Record timestamp as the 30-min-window start for learning.' }
+        ],
+        quote: 'When the cat is "nearly dry" that is typically when I send the 30 minute pickup text to the client. (Paul is the one to execute — Miso observes or sends on Paul\'s request, never proactively.)'
+      },
+      {
+        id: 'new-client-price',
+        title: 'New client — standard price, no uplift',
+        source: 'Q9 Pricing',
+        trigger: 'Checkout for first visit.',
+        gates: [
+          { label: 'GATE', check: 'Is this the client\'s first groom?' }
+        ],
+        outcomes: [
+          { label: 'YES', kind: 'yes', text: 'Charge standard FCG / DSH / kitten rate. The extra 2h SOLO time is absorbed as retention investment.' },
+          { label: 'NO', kind: 'flag', text: 'Standard pricing flow.' }
+        ],
+        quote: 'I do miss out on higher income because I dedicate exclusive time to a new client, but I think it\'s better to retain clients than constantly find new ones.'
+      },
+      {
+        id: 'grandfathered-price',
+        title: 'Grandfathered price nudge',
+        source: 'Q7 Pricing · nudge gate (not auto-apply)',
+        trigger: 'About to generate an invoice. Paul is deciding on the final price.',
+        gates: [
+          { label: 'GATE', check: 'Is an EXPLICIT grandfathered price recorded on the client file? (Not an inference, a stated number.)' }
+        ],
+        outcomes: [
+          { label: 'YES — explicit price on file', kind: 'flag', text: 'Nudge Paul: "reminder — $X is recorded as this client\'s grandfathered rate." Paul decides whether to apply it. Miso never auto-applies.' },
+          { label: 'NO explicit price', kind: 'yes', text: 'Silent pass. Current rate card is the starting point. Paul edits manually if he wants to concede a discount.' }
+        ],
+        quote: 'Jane (Pumpkin) probably gets the best prices of all my clients. (Paul to decide + manually edit the price. Miso\'s job is only to remind when the file has an explicit recorded price.)'
+      },
+      {
+        id: 'cancellation-send',
+        title: 'Send the $55 cancellation fee request',
+        source: 'Q13 Pricing',
+        trigger: 'Client late-cancelled or no-showed.',
+        gates: [
+          { label: 'GATE 1', check: 'Has Paul given explicit permission for this specific client?' }
+        ],
+        outcomes: [
+          { label: 'YES', kind: 'yes', text: 'Send the fee request via Paul\'s preferred comms channel.' },
+          { label: 'NO', kind: 'no', text: 'Hold. Do NOT send. Surface to Paul first — this is fraught if handled wrong.' }
+        ],
+        quote: 'You\'ll always need to get my permission to send a cancellation request. This is fraught with risk if I don\'t handle it right.'
+      }
+    ]
+  }
+];
+
+// ─── Rendering ──────────────────────────────────────────────────────────────
+
+function renderGate(gate) {
+  const gateNodes = gate.gates.map((g, i) => `
+    <div class="node-box node-gate">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="tier-chip tier-gate">${g.label}</span>
+        <span class="operator op-check">CHECK</span>
+      </div>
+      <div class="text-sm leading-snug">${escapeHtml(g.check)}</div>
+    </div>
+    ${i < gate.gates.length - 1 ? '<div class="flow-arrow"></div>' : ''}
+  `).join('');
+
+  // Outcomes — render as single block if 1, as fork if 2, as stacked list if 3+
+  let outcomesHtml;
+  if (gate.outcomes.length === 1) {
+    const o = gate.outcomes[0];
+    outcomesHtml = `<div class="node-box node-outcome-${o.kind === 'no' ? 'no' : 'yes'}">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="tier-chip tier-out-${o.kind === 'no' ? 'no' : 'yes'}">${escapeHtml(o.label)}</span>
+        <span class="operator ${o.kind === 'no' ? 'op-no' : 'op-yes'}">${o.kind.toUpperCase()}</span>
+      </div>
+      <div class="text-sm leading-snug">${escapeHtml(o.text)}</div>
+    </div>`;
+  } else {
+    outcomesHtml = `<div class="space-y-2 mt-2">
+      ${gate.outcomes.map(o => {
+        const borderCls = o.kind === 'yes' ? 'node-outcome-yes' : (o.kind === 'no' ? 'node-outcome-no' : 'node-flag');
+        const chipCls = o.kind === 'yes' ? 'tier-out-yes' : (o.kind === 'no' ? 'tier-out-no' : 'tier-3');
+        const opCls = o.kind === 'yes' ? 'op-yes' : (o.kind === 'no' ? 'op-no' : 'op-flag');
+        return `<div class="node-box ${borderCls}">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tier-chip ${chipCls}">${escapeHtml(o.label)}</span>
+            <span class="operator ${opCls}">${o.kind.toUpperCase()}</span>
+          </div>
+          <div class="text-sm leading-snug">${escapeHtml(o.text)}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  return `
+    <article class="card-wrap bg-white rounded-xl border border-stone-200 p-5">
+      <header class="mb-4 flex items-start justify-between gap-2">
+        <h3 class="font-semibold text-base leading-tight">${escapeHtml(gate.title)}</h3>
+        <span class="text-xs font-mono text-stone-500 bg-stone-100 px-2 py-0.5 rounded whitespace-nowrap">${escapeHtml(gate.source)}</span>
+      </header>
+
+      <div class="node-box node-trigger mb-0">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="tier-chip tier-trigger">TRIGGER</span>
+        </div>
+        <div class="text-sm leading-snug text-stone-700">${escapeHtml(gate.trigger)}</div>
+      </div>
+      <div class="flow-arrow"></div>
+
+      ${gateNodes}
+      <div class="flow-arrow"></div>
+
+      ${outcomesHtml}
+
+      ${gate.quote ? `<blockquote class="quote mt-4">"${escapeHtml(gate.quote)}"</blockquote>` : ''}
+    </article>
+  `;
+}
+
+function renderCategory(group) {
+  return `
+    <section>
+      <header class="mb-4">
+        <h2 class="font-bold text-lg">${escapeHtml(group.title)}</h2>
+        <p class="text-sm text-stone-600 mt-0.5">${escapeHtml(group.subtitle)}</p>
+      </header>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${group.gates.map(renderGate).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderStats() {
+  const total = GROUPS.reduce((s, g) => s + g.gates.length, 0);
+  const oneGate = GROUPS.flatMap(g => g.gates).filter(x => x.gates.length === 1).length;
+  const twoGate = GROUPS.flatMap(g => g.gates).filter(x => x.gates.length === 2).length;
+  const byGroup = GROUPS.map(g => `${g.gates.length} ${g.title.toLowerCase()}`).join(' · ');
+  return `
+    <h2 class="font-bold text-lg mb-4">Gate inventory</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+      <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+        <div class="text-3xl stat-num">${total}</div>
+        <div class="text-xs text-stone-600 mt-1">gates total</div>
+      </div>
+      <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+        <div class="text-3xl stat-num">${oneGate}</div>
+        <div class="text-xs text-stone-600 mt-1">one-gate (instant resolve)</div>
+      </div>
+      <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+        <div class="text-3xl stat-num">${twoGate}</div>
+        <div class="text-xs text-stone-600 mt-1">two-gate (short cascade)</div>
+      </div>
+      <div class="p-4 rounded-lg bg-stone-50 border border-stone-200">
+        <div class="text-3xl stat-num">${GROUPS.length}</div>
+        <div class="text-xs text-stone-600 mt-1">categories</div>
+      </div>
+    </div>
+    <div class="text-xs text-stone-500 mt-4">Distribution: ${byGroup}</div>
+    <div class="mt-5 text-sm text-stone-600 leading-relaxed">
+      These are Miso's building blocks. Every one is a candidate for a single pull-request implementation — tight scope, testable in isolation, shippable without touching the deep cascades. Good for AFK runs.
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.getElementById('categories').innerHTML = GROUPS.map(renderCategory).join('');
+document.getElementById('stats').innerHTML = renderStats();
+</script>
+</body>
+</html>

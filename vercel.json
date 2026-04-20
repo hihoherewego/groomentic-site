@@ -3,6 +3,12 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/via/logic-map", "destination": "/via/logic-map.html" },
+    { "source": "/via/nested", "destination": "/via/nested.html" },
+    { "source": "/via/gates", "destination": "/via/gates.html" },
+    { "source": "/via/login", "destination": "/via/login.html" }
+  ],
   "headers": [
     {
       "source": "/b/(.*)",
@@ -35,6 +41,20 @@
     },
     {
       "source": "/design/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/via",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/via/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
         { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
