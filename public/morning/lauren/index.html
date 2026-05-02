@@ -169,6 +169,44 @@
         .loading-text { color: #6B7280; font-size: 0.9rem; }
         .error-state { text-align: center; padding: 40px 20px; color: #6B7280; }
         .error-state .icon { font-size: 2rem; margin-bottom: 12px; }
+        /* Per-pet header row (S144 modal-parity) */
+        .pet-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #E9E5DD; }
+        .pet-photo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #F3EFF5; flex-shrink: 0; border: 2px solid #C4B5CB; }
+        .pet-photo-fallback { display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-size: 1.6rem; color: #5E4B66; font-weight: 600; }
+        .pet-meta { flex: 1; min-width: 0; }
+        .pet-name { font-family: Georgia, serif; font-style: italic; font-size: 1.4rem; color: #1F2937; line-height: 1.1; }
+        .pet-meta-line { font-size: 0.78rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .pet-meta-line .candle { color: #B45309; }
+        .pet-meta-line .breed { font-weight: 500; color: #4B5563; }
+        .pet-meta-line .visits { color: #9CA3AF; }
+        .pet-block { margin: 16px 0; }
+
+        /* Two-column grid for AI panels */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+        .info-panel { background: #F9F8F6; border: 1px solid #E9E5DD; border-radius: 12px; padding: 14px 16px; }
+        .info-panel-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #A693AC; font-weight: 600; margin-bottom: 10px; }
+        .info-panel-title.ai { color: #5E4B66; }
+        .info-panel-title.history { color: #4A9BC7; }
+        .info-panel-body { font-size: 0.88rem; color: #374151; line-height: 1.55; }
+        .info-panel-body p { margin-bottom: 8px; }
+        .info-panel-body p:last-child { margin-bottom: 0; }
+        .info-panel-body strong { color: #1F2937; }
+
+        /* Appointment details panel: key-value rows */
+        .detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 0.84rem; }
+        .detail-key { color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; }
+        .detail-val { color: #1F2937; text-align: right; font-weight: 500; }
+
+        /* Previous history rows */
+        .history-row { padding: 8px 0; border-bottom: 1px solid #E9E5DD; font-size: 0.85rem; }
+        .history-row:last-child { border-bottom: none; }
+        .history-date { color: #4A9BC7; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .history-services { color: #1F2937; margin-top: 2px; }
+        .history-notes { color: #6B7280; font-size: 0.8rem; margin-top: 4px; font-style: italic; }
+
+        /* Empty placeholders */
+        .empty-notes { color: #9CA3AF; font-style: italic; font-size: 0.85rem; margin: 0; }
+
         @media (max-width: 500px) {
             .container { padding: 16px 10px 40px; }
             .glass { padding: 18px 16px; }
@@ -177,6 +215,9 @@
             .toggle-row { flex-direction: column; }
             .toggle-btn { width: 100%; }
             .depart-banner { flex-wrap: wrap; }
+            .info-grid { grid-template-columns: 1fr; }
+            .pet-photo { width: 48px; height: 48px; }
+            .pet-name { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -197,7 +238,7 @@
     </div>
     <script>
     (function() {
-        var USER = document.body.getAttribute('data-user') || 'paul';
+        var USER = document.body.getAttribute('data-user') || 'lauren';
         var API = 'https://duwwfbohvptdsgrvlskj.supabase.co/functions/v1/serve-morning-briefing';
         var feedbackState = {
             useful: '', bestSections: [], changeRequest: '', addRemove: '',
@@ -223,6 +264,18 @@
         function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
         function money(cents) { if (!cents) return '$0'; var d = cents / 100; return d % 1 === 0 ? '$' + d : '$' + d.toFixed(2); }
+        function moneyOrEm(cents) { return cents ? money(cents) : '—'; }
+        function paymentLabel(s) { if (!s) return '—'; return String(s).replace(/_/g,' ').toUpperCase(); }
+        function md(text) {
+            if (!text) return '';
+            var out = esc(text);
+            out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+            return out.split(/\n\n+/).map(function(p){ return '<p>' + p.replace(/\n/g,' ') + '</p>'; }).join('');
+        }
+        function fmtPrevDate(iso) {
+            try { var d = new Date(iso); return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); }
+            catch(e) { return iso || ''; }
+        }
 
         function getCategoryClass(label) {
             if (!label) return '';
@@ -310,87 +363,103 @@
                 clients.forEach(function(c) {
                     html += '<div class="client-card">';
 
-                    // Client header: name + visit label + confirmation tag
+                    // === Owner header (one per client) ===
                     html += '<div class="client-header"><div>';
-                    var nameLabel = esc(c.name);
-                    if (c.visit_label) nameLabel += ' \u2014 ' + esc(c.visit_label);
-                    html += '<div class="client-name">' + nameLabel + '</div>';
-                    // Meta: client since, phone
+                    html += '<div class="client-name">' + esc(c.name) + '</div>';
                     var metaParts = [];
                     if (c.client_since) metaParts.push('Client since ' + esc(c.client_since));
                     if (c.phone) metaParts.push(esc(c.phone));
                     if (metaParts.length) html += '<div class="client-meta">' + metaParts.join(' \u2022 ') + '</div>';
                     html += '</div>';
-                    // Confirmation tag
-                    if (c.is_confirmed) {
-                        html += '<span class="tag tag-confirmed">Confirmed</span>';
-                    } else if (c.is_new) {
-                        html += '<span class="tag tag-new">New Client</span>';
-                    } else {
-                        html += '<span class="tag tag-unconfirmed">Unconfirmed</span>';
-                    }
+                    if (c.is_confirmed) html += '<span class="tag tag-confirmed">Confirmed</span>';
+                    else if (c.is_new) html += '<span class="tag tag-new">New Client</span>';
+                    else html += '<span class="tag tag-unconfirmed">Unconfirmed</span>';
                     html += '</div>';
 
-                    // Service lines with per-pet pricing
-                    var services = c.services || [];
-                    services.forEach(function(s) {
-                        if (s.name === 'Let Paul Decide' && !s.price) return;
-                        html += '<div class="service-line">';
-                        var svcLabel = s.pet_name ? esc(s.pet_name) + ' \u2014 ' + esc(s.name) : esc(s.name);
-                        html += '<span class="service-name">' + svcLabel + '</span>';
-                        if (s.price > 0) html += '<span class="service-price">' + money(s.price) + '</span>';
-                        html += '</div>';
-                    });
-
-                    // Time range
-                    if (c.time_range) {
-                        html += '<div class="client-meta" style="margin-top:4px;">' + esc(c.time_range) + '</div>';
-                    } else if (c.time) {
-                        html += '<div class="client-meta" style="margin-top:4px;">' + esc(c.time) + (c.duration ? ' \u2022 ' + c.duration + ' min' : '') + '</div>';
-                    }
-
-                    // Drive time + suburb (replaces pin address)
-                    if (c.drive_time_label) {
-                        var driveText = '&#x1F697; ' + esc(c.drive_time_label);
-                        // Extract suburb from address for context
-                        var addrParts = (c.address || '').split(',').map(function(s) { return s.trim(); });
-                        var suburb = addrParts.length > 1 ? addrParts[1] : (addrParts[0] || '');
-                        if (suburb) driveText += ' from ' + esc(suburb);
-                        if (c.access_notes) driveText += ' \u2022 ' + esc(c.access_notes);
-                        html += '<div class="address-line">' + driveText + '</div>';
-                    } else if (c.address) {
-                        var addrText = '&#x1F4CD; ' + esc(c.address);
-                        if (c.access_notes) addrText += ' \u2022 ' + esc(c.access_notes);
-                        html += '<div class="address-line">' + addrText + '</div>';
-                    }
-
-                    // Cat cards
+                    // === Per-pet block (S144 modal-parity) ===
                     var pets = c.pets || [];
-                    if (pets.length > 0) {
-                        html += '<div class="cat-card">';
-                        var firstPet = pets[0];
-                        var petParts = ['&#x1F431; ' + esc(firstPet.name)];
-                        if (firstPet.breed) petParts.push(esc(firstPet.breed));
-                        if (firstPet.sex) petParts.push(esc(firstPet.sex));
-                        if (firstPet.age) petParts.push(esc(firstPet.age));
-                        html += '<h4>' + petParts.join(' \u2022 ') + '</h4>';
-                        if (pets.length > 1) {
-                            var otherPets = pets.slice(1).map(function(p) {
-                                var parts = ['<strong>' + esc(p.name) + '</strong>'];
-                                if (p.breed) parts.push(esc(p.breed));
-                                if (p.sex) parts.push(esc(p.sex));
-                                if (p.age) parts.push(esc(p.age));
-                                return parts.join(' \u2022 ');
-                            });
-                            html += '<p>Also: ' + otherPets.join('; ') + '</p>';
-                        }
-                        html += '</div>';
-                    }
+                    pets.forEach(function(p) {
+                        html += '<div class="pet-block">';
 
-                    // Behaviour summary
-                    if (c.behaviour_summary) {
-                        html += '<div class="behaviour-summary"><strong>Behaviour &amp; Handling:</strong> ' + esc(c.behaviour_summary) + '</div>';
-                    }
+                        // Pet header: photo + name + meta
+                        html += '<div class="pet-header">';
+                        if (p.photo_key) {
+                            html += '<img class="pet-photo" src="https://d-pawfentic-pet-photos.s3.ap-southeast-2.amazonaws.com/' + escAttr(p.photo_key) + '" alt="' + escAttr(p.name) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">';
+                            html += '<div class="pet-photo pet-photo-fallback" style="display:none;">' + esc((p.name || '?').charAt(0).toUpperCase()) + '</div>';
+                        } else if (p.photo_url) {
+                            html += '<img class="pet-photo" src="' + escAttr(p.photo_url) + '" alt="' + escAttr(p.name) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">';
+                            html += '<div class="pet-photo pet-photo-fallback" style="display:none;">' + esc((p.name || '?').charAt(0).toUpperCase()) + '</div>';
+                        } else {
+                            html += '<div class="pet-photo pet-photo-fallback">' + esc((p.name || '?').charAt(0).toUpperCase()) + '</div>';
+                        }
+
+                        html += '<div class="pet-meta">';
+                        html += '<div class="pet-name">' + esc(p.name || 'Unknown') + '</div>';
+                        html += '<div class="pet-meta-line">';
+                        if (p.age_years != null) html += '<span class="candle">\ud83d\udd25 ' + p.age_years + '</span>';
+                        if (p.breed && p.breed !== 'Unknown breed') html += '<span class="breed">' + esc(p.breed) + '</span>';
+                        if (p.visit_count) html += '<span class="visits">' + p.visit_count + 'th visit</span>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>'; // close pet-header
+
+                        // === Two-column grid #1: APPOINTMENT DETAILS + AI SUMMARY ===
+                        html += '<div class="info-grid">';
+                        // Appointment Details
+                        html += '<div class="info-panel">';
+                        html += '<div class="info-panel-title">Appointment Details</div>';
+                        html += '<div class="info-panel-body">';
+                        if (c.time_range) html += '<div class="detail-row"><span class="detail-key">Time</span><span class="detail-val">' + esc(c.time_range) + '</span></div>';
+                        if (c.duration) html += '<div class="detail-row"><span class="detail-key">Duration</span><span class="detail-val">' + c.duration + ' min</span></div>';
+                        html += '<div class="detail-row"><span class="detail-key">Location</span><span class="detail-val">' + (c.is_mobile ? 'Mobile' : 'Salon') + '</span></div>';
+                        if (c.booking_source) html += '<div class="detail-row"><span class="detail-key">Source</span><span class="detail-val">' + esc(c.booking_source) + '</span></div>';
+                        var petSvcs = (c.services || []).filter(function(s){ return !s.pet_name || s.pet_name === p.name; }).map(function(s){ return s.name; });
+                        if (petSvcs.length) html += '<div class="detail-row"><span class="detail-key">Services</span><span class="detail-val">' + esc(petSvcs.join(', ')) + '</span></div>';
+                        html += '<div class="detail-row"><span class="detail-key">Estimated</span><span class="detail-val">' + moneyOrEm(c.revenue_cents) + '</span></div>';
+                        html += '<div class="detail-row"><span class="detail-key">Actual</span><span class="detail-val">' + moneyOrEm(c.actual_total_cents) + '</span></div>';
+                        html += '<div class="detail-row"><span class="detail-key">Paid</span><span class="detail-val">' + moneyOrEm(c.actual_paid_cents) + '</span></div>';
+                        html += '<div class="detail-row"><span class="detail-key">Payment</span><span class="detail-val">' + esc(paymentLabel(c.payment_status)) + '</span></div>';
+                        html += '</div></div>';
+
+                        // AI Summary
+                        html += '<div class="info-panel">';
+                        html += '<div class="info-panel-title ai">AI Summary</div>';
+                        html += '<div class="info-panel-body">';
+                        if (p.miso_briefing) html += md(p.miso_briefing);
+                        else html += '<p class="empty-notes">No AI summary yet.</p>';
+                        html += '</div></div>';
+
+                        html += '</div>'; // close info-grid #1
+
+                        // === Two-column grid #2: PREVIOUS HISTORY + HUMAN NOTES ===
+                        html += '<div class="info-grid">';
+                        // Previous History
+                        html += '<div class="info-panel">';
+                        html += '<div class="info-panel-title history">Previous History</div>';
+                        html += '<div class="info-panel-body">';
+                        var prev = p.previous_appointments || [];
+                        if (prev.length === 0) html += '<p class="empty-notes">No previous sessions on file.</p>';
+                        else prev.forEach(function(ph) {
+                            html += '<div class="history-row">';
+                            html += '<div class="history-date">' + esc(fmtPrevDate(ph.scheduled_at)) + '</div>';
+                            if (ph.services_summary) html += '<div class="history-services">' + esc(ph.services_summary) + '</div>';
+                            if (ph.session_notes_excerpt) html += '<div class="history-notes">' + esc(ph.session_notes_excerpt) + (ph.session_notes_excerpt.length >= 240 ? '\u2026' : '') + '</div>';
+                            html += '</div>';
+                        });
+                        html += '</div></div>';
+
+                        // Human Notes
+                        html += '<div class="info-panel">';
+                        html += '<div class="info-panel-title">Human Notes</div>';
+                        html += '<div class="info-panel-body">';
+                        if (p.miso_human_notes) html += md(p.miso_human_notes);
+                        else html += '<p class="empty-notes">No frank-notes yet.</p>';
+                        html += '</div></div>';
+
+                        html += '</div>'; // close info-grid #2
+
+                        html += '</div>'; // close pet-block
+                    });
 
                     html += '</div>'; // end client-card
                 });
